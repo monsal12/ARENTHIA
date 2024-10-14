@@ -48,6 +48,6 @@ module.exports = {
             .setTitle(`✅ Successfully equipped **${weapon.name}**!`)
             .setDescription(`Your stats have been updated:\n- Strength: ${user.stats.strength}\n- Intelligence: ${user.stats.intelligence}\n- Ability: ${user.stats.ability}`);
 
-        return interaction.deferreply({ embeds: [embed] });
+        return interaction.reply({ embeds: [embed] });
     }
 };

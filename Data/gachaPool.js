@@ -18,7 +18,7 @@ const gachaPool = [
             intelligence: 1,
             ability: 0
         },
-        imageUrl: "https://media.discordapp.net/attachments/125662847976865796",
+        imageUrl: "https://media.discordapp.net/attachments/1256628479768657962/1294967175618232381/IMG_8615.jpg?ex=670ee9e9&is=670d9869&hm=ac841055699925e0fc66792651d8e8a9bffb934e6ce1f1aa9c8dbf35a8eada69&=&format=webp&width=585&height=585",
         rate: 0.6
     },
     {

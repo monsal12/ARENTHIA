@@ -15,6 +15,8 @@ module.exports = {
                 .setDescription('Unique code of the weapon being traded') // Ubah menjadi uniqueCode
                 .setRequired(true)),
     async execute(interaction) {
+        await interaction.deferReply(); // Menunda balasan untuk proses yang lebih lama
+
         const traderUser = interaction.options.getUser('trader');
         const weaponCode = interaction.options.getString('weapon_id'); // Ubah menjadi weaponCode
         const userId = interaction.user.id;
@@ -22,25 +24,25 @@ module.exports = {
         // Temukan senjata berdasarkan uniqueCode
         const weapon = await Weapon.findOne({ uniqueCode: weaponCode }); // Menggunakan findOne dengan uniqueCode
         if (!weapon) {
-            return interaction.deferreply('⚠️ Senjata tidak ditemukan.');
+            return interaction.editReply('⚠️ Senjata tidak ditemukan.'); // Gunakan editReply untuk memperbarui balasan
         }
 
         // Temukan inventory pengguna yang melakukan trade
         const traderInventory = await Inventory.findOne({ userId: traderUser.id });
         if (!traderInventory) {
-            return interaction.deferreply('⚠️ Trader tidak memiliki inventory.');
+            return interaction.editReply('⚠️ Trader tidak memiliki inventory.'); // Gunakan editReply
         }
 
         // Cek apakah senjata ada di inventory trader
         const weaponIndex = traderInventory.weapons.indexOf(weapon._id);
         if (weaponIndex === -1) {
-            return interaction.deferreply('⚠️ Trader tidak memiliki senjata ini.');
+            return interaction.editReply('⚠️ Trader tidak memiliki senjata ini.'); // Gunakan editReply
         }
 
         // Temukan inventory pengguna yang menerima trade
         const userInventory = await Inventory.findOne({ userId });
         if (!userInventory) {
-            return interaction.deferreply('⚠️ Kamu tidak memiliki inventory.');
+            return interaction.editReply('⚠️ Kamu tidak memiliki inventory.'); // Gunakan editReply
         }
 
         // Pindahkan senjata dari trader ke penerima
@@ -50,6 +52,6 @@ module.exports = {
         await traderInventory.save();
         await userInventory.save();
 
-        return interaction.deferreply(`✅ Trade berhasil! Kamu telah menerima **${weapon.name}** dari ${traderUser.username}.`);
+        return interaction.editReply(`✅ Trade berhasil! Kamu telah menerima **${weapon.name}** dari ${traderUser.username}.`);
     }
 };

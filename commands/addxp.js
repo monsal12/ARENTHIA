@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const User = require('../models/user');
 const { checkLevelUp } = require('../helpers/leveling');
 
-const allowedRoleId = 'ROLE_ID_HERE'; // Ganti dengan ID peran yang diizinkan
+const allowedRoleId = '1246365106846044262'; // Ganti dengan ID peran yang diizinkan
 
 module.exports = {
     data: new SlashCommandBuilder()
