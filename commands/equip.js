@@ -18,10 +18,16 @@ module.exports = {
         const weapon = await Weapon.findOne({ uniqueCode: weaponCode });
 
         if (!user) {
-            return interaction.deferreply('⚠️ User not found.');
+            return interaction.reply('⚠️ User not found.');
         }
+
         if (!weapon) {
-            return interaction.deferreply('⚠️ Weapon not found.');
+            return interaction.reply('⚠️ Weapon not found.');
+        }
+
+        // Check if the weapon belongs to the user
+        if (String(weapon.ownerId) !== String(user._id)) {
+            return interaction.reply('⚠️ You do not own this weapon.');
         }
 
         // Check if the user already has an equipped weapon
