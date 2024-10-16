@@ -115,35 +115,52 @@ const initBattle = async (interaction, user) => {
                 actionCollector.stop();
                 return interaction.followUp('Kamu berhasil melarikan diri!');
                 
-            case 'selectSkill':
-                const selectedSkillName = i.values[0];
-                const selectedSkill = skills.find(skill => skill.name === selectedSkillName);
-                if (!selectedSkill) {
-                    return interaction.followUp('Skill tidak valid!');
-                }
-
-                const hasEnoughMana = selectedSkill.manaCost ? userMana >= selectedSkill.manaCost : true;
-                const hasEnoughStamina = selectedSkill.staminaCost ? userStamina >= selectedSkill.staminaCost : true;
-
-                if (hasEnoughMana && hasEnoughStamina) {
-                    if (selectedSkill.manaCost) userMana -= selectedSkill.manaCost;
-                    if (selectedSkill.staminaCost) userStamina -= selectedSkill.staminaCost;
-
-                    let healingAmount = 0;
-
-                    if (selectedSkill.healingFactor) {
-                        healingAmount = Math.floor(selectedSkill.healingFactor * user.stats.intelligence);
-                        userHealth = Math.min(user.health.max, userHealth + healingAmount);
-                        responseMessage = `Kamu menggunakan skill ${selectedSkill.name} dan memulihkan ${healingAmount} HP!`;
-                    } else if (selectedSkill.damageFactor) {
-                        const skillDamage = Math.floor(selectedSkill.damageFactor * user.stats.strength);
-                        monsterHealth -= skillDamage;
-                        responseMessage = `Kamu menggunakan skill ${selectedSkill.name} dan memberikan damage sebesar ${skillDamage} poin!`;
+                case 'selectSkill':
+                    const selectedSkillName = i.values[0];
+                    const selectedSkill = skills.find(skill => skill.name === selectedSkillName);
+                    if (!selectedSkill) {
+                        return interaction.followUp('Skill tidak valid!');
                     }
-                } else {
-                    responseMessage = 'Mana atau Stamina tidak cukup untuk menggunakan skill ini!';
-                }
-                break;
+                
+                    // Cek apakah user memiliki cukup mana dan stamina
+                    const hasEnoughMana = selectedSkill.manaCost ? userMana >= selectedSkill.manaCost : true;
+                    const hasEnoughStamina = selectedSkill.staminaCost ? userStamina >= selectedSkill.staminaCost : true;
+                
+                    if (hasEnoughMana && hasEnoughStamina) {
+                        // Kurangi mana dan stamina user sesuai cost
+                        if (selectedSkill.manaCost) userMana -= selectedSkill.manaCost;
+                        if (selectedSkill.staminaCost) userStamina -= selectedSkill.staminaCost;
+                
+                        let healingAmount = 0;
+                
+                        // Jika skill memiliki healing factor, hitung penyembuhan berdasarkan intelligence
+                        if (selectedSkill.healingFactor) {
+                            healingAmount = Math.floor(selectedSkill.healingFactor * user.stats.intelligence);
+                            userHealth = Math.min(user.health.max, userHealth + healingAmount);
+                            responseMessage = `Kamu menggunakan skill ${selectedSkill.name} dan memulihkan ${healingAmount} HP!`;
+                        
+                        // Jika skill memiliki damage factor
+                        } else if (selectedSkill.damageFactor) {
+                            let skillDamage = 0;
+                            
+                            // Jika skill menggunakan mana, hitung damage berdasarkan intelligence
+                            if (selectedSkill.manaCost && selectedSkill.manaCost > 0) {
+                                skillDamage = Math.floor(selectedSkill.damageFactor * user.stats.intelligence);
+                                responseMessage = `Kamu menggunakan skill ${selectedSkill.name} dan memberikan damage sebesar ${skillDamage} poin menggunakan mana!`;
+                            
+                            // Jika skill menggunakan stamina, hitung damage berdasarkan strength
+                            } else if (selectedSkill.staminaCost && selectedSkill.staminaCost > 0) {
+                                skillDamage = Math.floor(selectedSkill.damageFactor * user.stats.strength);
+                                responseMessage = `Kamu menggunakan skill ${selectedSkill.name} dan memberikan damage sebesar ${skillDamage} poin menggunakan stamina!`;
+                            }
+                
+                            monsterHealth -= skillDamage;
+                        }
+                    } else {
+                        responseMessage = 'Mana atau Stamina tidak cukup untuk menggunakan skill ini!';
+                    }
+                    break;
+                
 
             default:
                 return;
