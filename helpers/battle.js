@@ -26,6 +26,8 @@ const initBattle = async (interaction, user) => {
 
     let userHealth = user.health.current;
     let monsterHealth = monster.health;
+    let userMana = user.mana.current;
+    let userStamina = user.stamina.current;
 
     const battleEmbed = new EmbedBuilder()
         .setTitle(`Pertarungan Melawan ${monster.name}`)
@@ -37,7 +39,6 @@ const initBattle = async (interaction, user) => {
         .setColor(Colors.Blue)
         .setImage(monster.imageUrl);
 
-    // Action buttons: Attack, Defend, Flee
     const row = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
@@ -54,7 +55,6 @@ const initBattle = async (interaction, user) => {
                 .setStyle(ButtonStyle.Danger)
         );
 
-    // Generate skill options for select menu
     const skillOptions = user.skills.map(userSkill => {
         const skillData = skills.find(s => s.name === userSkill);
         if (!skillData) return { label: 'Skill Tidak Dikenal', value: 'undefined-skill', description: 'Skill tidak tersedia' };
@@ -89,7 +89,7 @@ const initBattle = async (interaction, user) => {
         let responseMessage = '';
 
         const applyMonsterAttack = (userHealth, monster) => {
-            const monsterAttack = monster.attack || 0; // Default to 0 if undefined
+            const monsterAttack = monster.attack || 0;
             const monsterDamage = Math.max(0, monsterAttack - (user.stats.defense || 0));
             userHealth -= monsterDamage;
             return { userHealth, monsterDamage };
@@ -103,9 +103,9 @@ const initBattle = async (interaction, user) => {
                 break;
 
             case 'defend':
-                const userDefense = user.stats.ability || 0; // Ensure defense is valid
+                const userDefense = user.stats.ability || 0;
                 const damageReduction = Math.floor(userDefense * 0.5);
-                const monsterAttack = monster.attack || 0; // Ensure monster attack is valid
+                const monsterAttack = monster.attack || 0;
                 const mitigatedDamage = Math.max(0, monsterAttack - damageReduction);
                 userHealth -= mitigatedDamage;
                 responseMessage = `Kamu bertahan dan mengurangi damage sebesar ${damageReduction} poin! ${monster.name} menyerang kamu dan menyebabkan ${mitigatedDamage} poin damage!`;
@@ -114,7 +114,7 @@ const initBattle = async (interaction, user) => {
             case 'flee':
                 actionCollector.stop();
                 return interaction.followUp('Kamu berhasil melarikan diri!');
-
+                
             case 'selectSkill':
                 const selectedSkillName = i.values[0];
                 const selectedSkill = skills.find(skill => skill.name === selectedSkillName);
@@ -122,12 +122,12 @@ const initBattle = async (interaction, user) => {
                     return interaction.followUp('Skill tidak valid!');
                 }
 
-                const hasEnoughMana = selectedSkill.manaCost ? user.mana.current >= selectedSkill.manaCost : true;
-                const hasEnoughStamina = selectedSkill.staminaCost ? user.stamina.current >= selectedSkill.staminaCost : true;
+                const hasEnoughMana = selectedSkill.manaCost ? userMana >= selectedSkill.manaCost : true;
+                const hasEnoughStamina = selectedSkill.staminaCost ? userStamina >= selectedSkill.staminaCost : true;
 
                 if (hasEnoughMana && hasEnoughStamina) {
-                    if (selectedSkill.manaCost) user.mana.current -= selectedSkill.manaCost;
-                    if (selectedSkill.staminaCost) user.stamina.current -= selectedSkill.staminaCost;
+                    if (selectedSkill.manaCost) userMana -= selectedSkill.manaCost;
+                    if (selectedSkill.staminaCost) userStamina -= selectedSkill.staminaCost;
 
                     let healingAmount = 0;
 
@@ -155,13 +155,8 @@ const initBattle = async (interaction, user) => {
             responseMessage += `\n${monster.name} menyerang kamu dan menyebabkan ${monsterDamage} poin damage!`;
         }
 
-        // Update embed with new health status
         battleEmbed.setDescription(`${responseMessage}\n\nKesehatanmu: ${userHealth}/${user.health.max}\nKesehatan Monster: ${monsterHealth}`);
         await i.editReply({ embeds: [battleEmbed], components: [row, skillRow] });
-
-        // Save user's updated health
-        user.health.current = userHealth;
-        await user.save();
 
         if (userHealth <= 0) {
             actionCollector.stop();
@@ -173,7 +168,6 @@ const initBattle = async (interaction, user) => {
             actionCollector.stop();
             cooldowns.set(interaction.user.id, now); // Apply cooldown when winning
 
-            // Retrieve celes from system account
             const systemUser = await User.findOne({ discordId: '994553740864536596' });
             const rewardCeles = monster.celesReward;
 
@@ -186,6 +180,12 @@ const initBattle = async (interaction, user) => {
 
             user.experience += monster.experienceReward;
             const leveledUp = await checkLevelUp(user);
+
+            // Update user mana, stamina, and health after battle victory
+            user.health.current = userHealth;
+            user.mana.current = userMana;
+            user.stamina.current = userStamina;
+
             await user.save();
 
             let levelUpMessage = `Kamu mengalahkan ${monster.name}! Mendapatkan ${monster.experienceReward} XP dan ${rewardCeles} celes!`;
@@ -198,11 +198,10 @@ const initBattle = async (interaction, user) => {
 
     actionCollector.on('end', collected => {
         if (collected.size === 0) {
-            return interaction.followUp('Waktu habis! Pertarungan berakhir.');
+            return interaction.followUp('Waktu habis! Pertarungan dibatalkan.');
         }
     });
 };
-
 const calculateDamage = (user, monster) => {
     const strength = user.stats.strength || 0;
     const defense = monster.defense || 0;
