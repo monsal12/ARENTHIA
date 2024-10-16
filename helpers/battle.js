@@ -10,7 +10,7 @@ const initBattle = async (interaction, user) => {
     const now = Date.now();
     const cooldownAmount = 15 * 60 * 1000; // 15 minutes in milliseconds
 
-    // Cooldown check
+    // Check if user has a cooldown and completed battle (win/lose)
     if (cooldowns.has(interaction.user.id)) {
         const expirationTime = cooldowns.get(interaction.user.id) + cooldownAmount;
         if (now < expirationTime) {
@@ -18,7 +18,6 @@ const initBattle = async (interaction, user) => {
             return interaction.reply(`Kamu harus menunggu **${timeLeft} detik** sebelum menggunakan perintah ini lagi.`);
         }
     }
-    cooldowns.set(interaction.user.id, now);
 
     const monster = await Monster.findOne({ channelId: interaction.channel.id });
     if (!monster) {
@@ -104,7 +103,7 @@ const initBattle = async (interaction, user) => {
                 break;
 
             case 'defend':
-                const userDefense = user.stats.defense || 0; // Ensure defense is valid
+                const userDefense = user.stats.ability || 0; // Ensure defense is valid
                 const damageReduction = Math.floor(userDefense * 0.5);
                 const monsterAttack = monster.attack || 0; // Ensure monster attack is valid
                 const mitigatedDamage = Math.max(0, monsterAttack - damageReduction);
@@ -166,12 +165,14 @@ const initBattle = async (interaction, user) => {
 
         if (userHealth <= 0) {
             actionCollector.stop();
+            cooldowns.set(interaction.user.id, now); // Apply cooldown when losing
             return interaction.followUp('Kamu telah kalah dalam pertarungan!');
         }
 
         if (monsterHealth <= 0) {
             actionCollector.stop();
-            
+            cooldowns.set(interaction.user.id, now); // Apply cooldown when winning
+
             // Retrieve celes from system account
             const systemUser = await User.findOne({ discordId: '994553740864536596' });
             const rewardCeles = monster.celesReward;
@@ -206,10 +207,23 @@ const calculateDamage = (user, monster) => {
     const strength = user.stats.strength || 0;
     const defense = monster.defense || 0;
     const baseDamage = Math.max(0, strength - defense);
-    const isCritical = Math.random() < 0.2;
+    const isCritical = Math.random() < 0.1; // 10% critical chance
+    const criticalBonus = isCritical ? baseDamage * 0.5 : 0;
 
-    const damage = isCritical ? baseDamage * 2 : baseDamage;
-    return { damage, isCritical };
+    return { damage: Math.floor(baseDamage + criticalBonus), isCritical };
+};
+
+module.exports = {
+    data: {
+        name: 'battle',
+        description: 'Bertarung melawan monster di channel ini.',
+    },
+    async execute(interaction) {
+        const user = await User.findOne({ discordId: interaction.user.id });
+        if (!user) return interaction.reply('Kamu belum terdaftar!');
+
+        return initBattle(interaction, user);
+    },
 };
 
 module.exports = { initBattle };
