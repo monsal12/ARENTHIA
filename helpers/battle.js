@@ -103,7 +103,7 @@ const initBattle = async (interaction, user) => {
                 break;
 
             case 'defend':
-                const userDefense = user.stats.defense || 0; // Ensure defense is valid
+                const userDefense = user.stats.ability || 0; // Ensure defense is valid
                 const damageReduction = Math.floor(userDefense * 0.5);
                 const monsterAttack = monster.attack || 0; // Ensure monster attack is valid
                 const mitigatedDamage = Math.max(0, monsterAttack - damageReduction);
