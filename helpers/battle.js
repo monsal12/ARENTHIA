@@ -10,7 +10,7 @@ const initBattle = async (interaction, user) => {
     const now = Date.now();
     const cooldownAmount = 15 * 60 * 1000; // 15 minutes in milliseconds
 
-    // Check if user has a cooldown and completed battle (win/lose)
+    // Check if user has a cooldown
     if (cooldowns.has(interaction.user.id)) {
         const expirationTime = cooldowns.get(interaction.user.id) + cooldownAmount;
         if (now < expirationTime) {
@@ -83,7 +83,7 @@ const initBattle = async (interaction, user) => {
     const actionCollector = interaction.channel.createMessageComponentCollector({ filter, time: 30000 });
 
     actionCollector.on('collect', async i => {
-        if (i.replied || i.deferred) return; 
+        if (i.replied || i.deferred) return;
         await i.deferUpdate();
 
         let responseMessage = '';
@@ -201,29 +201,6 @@ const initBattle = async (interaction, user) => {
             return interaction.followUp('Waktu habis! Pertarungan berakhir.');
         }
     });
-};
-
-const calculateDamage = (user, monster) => {
-    const strength = user.stats.strength || 0;
-    const defense = monster.defense || 0;
-    const baseDamage = Math.max(0, strength - defense);
-    const isCritical = Math.random() < 0.1; // 10% critical chance
-    const criticalBonus = isCritical ? baseDamage * 0.5 : 0;
-
-    return { damage: Math.floor(baseDamage + criticalBonus), isCritical };
-};
-
-module.exports = {
-    data: {
-        name: 'battle',
-        description: 'Bertarung melawan monster di channel ini.',
-    },
-    async execute(interaction) {
-        const user = await User.findOne({ discordId: interaction.user.id });
-        if (!user) return interaction.reply('Kamu belum terdaftar!');
-
-        return initBattle(interaction, user);
-    },
 };
 
 module.exports = { initBattle };
