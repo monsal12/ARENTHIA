@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const Inventory = require('../models/inventory');
 const Weapon = require('../models/weapon');
+const Armor = require('../models/armor'); // Pastikan Anda mengimpor model Armor
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -11,21 +12,39 @@ module.exports = {
                 .setDescription('User who initiated the trade')
                 .setRequired(true))
         .addStringOption(option =>
-            option.setName('weapon_id')
-                .setDescription('Unique code of the weapon being traded')
+            option.setName('type')
+                .setDescription('Type of item being traded (weapon or armor)')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'weapon', value: 'weapon' }, // Format objek
+                    { name: 'armor', value: 'armor' }    // Format objek
+                )) // Menggunakan objek untuk pilihan
+        .addStringOption(option =>
+            option.setName('item_id')
+                .setDescription('Unique code of the item being traded (weapon or armor)')
                 .setRequired(true)),
     async execute(interaction) {
         await interaction.deferReply(); // Menunda balasan untuk proses yang lebih lama
 
         const traderUser = interaction.options.getUser('trader'); // User yang mengirim trade
-        const weaponCode = interaction.options.getString('weapon_id'); // Unique code dari senjata
+        const itemType = interaction.options.getString('type'); // Tipe item (weapon atau armor)
+        const itemCode = interaction.options.getString('item_id'); // Unique code dari item
         const userId = interaction.user.id; // User yang menerima trade
 
         try {
-            // Cari senjata berdasarkan kode unik
-            const weapon = await Weapon.findOne({ uniqueCode: weaponCode });
-            if (!weapon) {
-                return interaction.editReply('⚠️ Senjata tidak ditemukan.');
+            let item;
+            if (itemType === 'weapon') {
+                // Cari senjata berdasarkan kode unik
+                item = await Weapon.findOne({ uniqueCode: itemCode });
+                if (!item) {
+                    return interaction.editReply('⚠️ Senjata tidak ditemukan.');
+                }
+            } else if (itemType === 'armor') {
+                // Cari armor berdasarkan kode unik
+                item = await Armor.findOne({ uniqueCode: itemCode });
+                if (!item) {
+                    return interaction.editReply('⚠️ Armor tidak ditemukan.');
+                }
             }
 
             // Cari inventory trader
@@ -34,10 +53,10 @@ module.exports = {
                 return interaction.editReply('⚠️ Trader tidak memiliki inventory.');
             }
 
-            // Cek apakah senjata ada di inventory trader
-            const weaponIndex = traderInventory.weapons.indexOf(weapon._id);
-            if (weaponIndex === -1) {
-                return interaction.editReply('⚠️ Trader tidak memiliki senjata ini.');
+            // Cek apakah item ada di inventory trader
+            const itemIndex = traderInventory[itemType === 'weapon' ? 'weapons' : 'armors'].indexOf(item._id);
+            if (itemIndex === -1) {
+                return interaction.editReply(`⚠️ Trader tidak memiliki ${itemType === 'weapon' ? 'senjata' : 'armor'} ini.`);
             }
 
             // Cari inventory penerima trade (user yang menerima)
@@ -46,22 +65,23 @@ module.exports = {
                 return interaction.editReply('⚠️ Kamu tidak memiliki inventory.');
             }
 
-            // Pindahkan senjata dari trader ke penerima
-            traderInventory.weapons.splice(weaponIndex, 1); // Hapus senjata dari inventory trader
-            userInventory.weapons.push(weapon._id); // Tambahkan senjata ke inventory penerima
+            // Pindahkan item dari trader ke penerima
+            traderInventory[itemType === 'weapon' ? 'weapons' : 'armors'].splice(itemIndex, 1); // Hapus item dari inventory trader
+            userInventory[itemType === 'weapon' ? 'weapons' : 'armors'].push(item._id); // Tambahkan item ke inventory penerima
 
-            // Perbarui pemilik senjata
-            weapon.ownerId = userId;
-            await weapon.save();
+            // Perbarui pemilik item
+            item.ownerId = userId;
+            await item.save();
 
             // Simpan perubahan di inventory masing-masing
             await traderInventory.save();
             await userInventory.save();
 
-            return interaction.editReply(`✅ Trade berhasil! Kamu telah menerima **${weapon.name}** dari ${traderUser.username}.`);
+            return interaction.editReply(`✅ Trade berhasil! Kamu telah menerima **${item.name}** dari ${traderUser.username}.`);
         } catch (error) {
             console.error('Terjadi kesalahan:', error);
             return interaction.editReply('⚠️ Terjadi kesalahan saat menerima trade.');
         }
     }
 };
+

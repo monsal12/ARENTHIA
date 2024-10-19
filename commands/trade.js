@@ -1,64 +1,85 @@
 const { SlashCommandBuilder } = require('discord.js');
 const Inventory = require('../models/inventory');
 const Weapon = require('../models/weapon');
+const Armor = require('../models/armor'); // Make sure Armor model is imported
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('trade')
-        .setDescription('Trade weapon with another user')
+        .setDescription('Trade weapon or armor with another user')
         .addUserOption(option => 
             option.setName('target')
                 .setDescription('User to trade with')
                 .setRequired(true))
         .addStringOption(option =>
-            option.setName('weapon_id')
-                .setDescription('Unique code of the weapon to trade')
+            option.setName('item_id')
+                .setDescription('Unique code of the item (weapon or armor) to trade')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('type')
+                .setDescription('Type of the item (weapon or armor)')
+                .addChoices(
+                    { name: 'weapon', value: 'weapon' },
+                    { name: 'armor', value: 'armor' }
+                )
                 .setRequired(true)),
     async execute(interaction) {
-        await interaction.deferReply(); // Menunda respons
+        await interaction.deferReply(); // Defer reply for long process
 
         const targetUser = interaction.options.getUser('target');
-        const weaponCode = interaction.options.getString('weapon_id');
+        const itemId = interaction.options.getString('item_id');
+        const itemType = interaction.options.getString('type');
         const userId = interaction.user.id;
 
         try {
-            const weapon = await Weapon.findOne({ uniqueCode: weaponCode });
-            if (!weapon) {
-                return await interaction.editReply('⚠️ Senjata tidak ditemukan.');
+            let item;
+
+            // Check if the item is a weapon or armor
+            if (itemType === 'weapon') {
+                item = await Weapon.findOne({ uniqueCode: itemId });
+                if (!item) {
+                    return await interaction.editReply('⚠️ Weapon not found.');
+                }
+            } else if (itemType === 'armor') {
+                item = await Armor.findOne({ uniqueCode: itemId });
+                if (!item) {
+                    return await interaction.editReply('⚠️ Armor not found.');
+                }
             }
 
             const userInventory = await Inventory.findOne({ userId });
             if (!userInventory) {
-                return await interaction.editReply('⚠️ Kamu tidak memiliki inventory.');
+                return await interaction.editReply('⚠️ You do not have an inventory.');
             }
 
-            const weaponIndex = userInventory.weapons.indexOf(weapon._id);
-            if (weaponIndex === -1) {
-                return await interaction.editReply('⚠️ Kamu tidak memiliki senjata ini di inventory.');
+            const itemIndex = itemType === 'weapon' 
+                ? userInventory.weapons.indexOf(item._id) 
+                : userInventory.armors.indexOf(item._id);
+
+            if (itemIndex === -1) {
+                return await interaction.editReply(`⚠️ You do not have this ${itemType === 'weapon' ? 'weapon' : 'armor'} in your inventory.`);
             }
 
             const targetInventory = await Inventory.findOne({ userId: targetUser.id });
             if (!targetInventory) {
-                return await interaction.editReply('⚠️ Target tidak memiliki inventory.');
+                return await interaction.editReply('⚠️ The target user does not have an inventory.');
             }
 
-            // Check if the target user is in the same server and can receive DMs
             const targetMember = await interaction.guild.members.fetch(targetUser.id);
             if (!targetMember) {
-                return await interaction.editReply('⚠️ Target tidak dapat menerima permintaan trade saat ini.');
+                return await interaction.editReply('⚠️ Target is not in the same server or cannot receive trade requests right now.');
             }
 
-            // Attempt to send DM to the target user
             try {
-                await targetUser.send(`📦 Kamu menerima permintaan trade dari ${interaction.user.username}.\n\n**Senjata:** ${weapon.name}\n**Grade:** ${weapon.grade}\n**Code:** ${weapon.uniqueCode}\n\nGunakan command \`/accept ${interaction.user.id} ${weapon.uniqueCode}\` untuk menerima trade.`);
+                await targetUser.send(`📦 You received a trade request from ${interaction.user.username}.\n\n**Item:** ${item.name}\n**Grade:** ${item.grade}\n**Code:** ${item.uniqueCode}\n\nUse the command \`/accept ${interaction.user.id} ${item.uniqueCode} ${itemType}\` to accept the trade.`);
             } catch (error) {
-                return await interaction.editReply('⚠️ Target tidak dapat dihubungi melalui DM.');
+                return await interaction.editReply('⚠️ Target user cannot be reached via DM.');
             }
 
-            return await interaction.editReply(`✅ Permintaan trade telah dikirim ke ${targetUser.username}.`);
+            return await interaction.editReply(`✅ Trade request sent to ${targetUser.username}.`);
         } catch (error) {
-            console.error('Terjadi kesalahan:', error);
-            await interaction.editReply('⚠️ Terjadi kesalahan saat menjalankan perintah ini.');
+            console.error('Error occurred:', error);
+            await interaction.editReply('⚠️ An error occurred while executing the command.');
         }
     }
 };
