@@ -22,7 +22,7 @@ module.exports = {
         const jumlahGacha = interaction.options.getInteger('jumlah');
 
         // Hitung total biaya gacha aksesoris
-        const totalCost = jumlahGacha * 500; // Misal 500 celes per gacha aksesoris
+        const totalCost = jumlahGacha * 1300; // Misal 500 celes per gacha aksesoris
 
         if (!user || user.celes < totalCost) {
             return interaction.reply('⚠️ Kamu tidak memiliki cukup celes untuk melakukan gacha.');
