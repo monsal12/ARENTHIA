@@ -95,7 +95,7 @@ module.exports = {
                 .setColor('#FFD700')
                 .setTitle(`🎉 Kamu mendapatkan armor!`)
                 .setDescription(`Berikut armor yang kamu peroleh:`)
-                .setFooter({ text: `Total gacha: ${jumlahGacha}` });
+                .setFooter({ text: `Total gacha: ${jumlahGacha} ✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!` });
 
             obtainedArmors.forEach(armor => {
                 embed.addFields({ name: armor.name, value: `Grade: ${armor.grade}`, inline: true });

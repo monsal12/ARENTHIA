@@ -65,7 +65,7 @@ module.exports = {
                     { name: 'Total Celes Kamu', value: `${user.celes}`, inline: true },
                     { name: 'Senjata yang Dijual', value: `${weapon.name}`, inline: true }
                 );
-
+                setFooter({ text: `✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!` });
             return interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error('Terjadi kesalahan:', error);

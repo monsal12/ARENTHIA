@@ -1,7 +1,8 @@
 const { SlashCommandBuilder } = require('discord.js');
 const Inventory = require('../models/inventory');
 const Weapon = require('../models/weapon');
-const Armor = require('../models/armor'); // Pastikan Anda mengimpor model Armor
+const Armor = require('../models/armor'); // Import Armor model
+const Accessory = require('../models/accessory'); // Import Accessory model
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -13,75 +14,81 @@ module.exports = {
                 .setRequired(true))
         .addStringOption(option =>
             option.setName('type')
-                .setDescription('Type of item being traded (weapon or armor)')
+                .setDescription('Type of item being traded (weapon, armor, or accessory)')
                 .setRequired(true)
                 .addChoices(
-                    { name: 'weapon', value: 'weapon' }, // Format objek
-                    { name: 'armor', value: 'armor' }    // Format objek
-                )) // Menggunakan objek untuk pilihan
+                    { name: 'weapon', value: 'weapon' },
+                    { name: 'armor', value: 'armor' },
+                    { name: 'accessory', value: 'accessory' } // Add accessory option
+                ))
         .addStringOption(option =>
             option.setName('item_id')
-                .setDescription('Unique code of the item being traded (weapon or armor)')
+                .setDescription('Unique code of the item being traded (weapon, armor, or accessory)')
                 .setRequired(true)),
     async execute(interaction) {
-        await interaction.deferReply(); // Menunda balasan untuk proses yang lebih lama
+        await interaction.deferReply(); // Defer reply for long process
 
-        const traderUser = interaction.options.getUser('trader'); // User yang mengirim trade
-        const itemType = interaction.options.getString('type'); // Tipe item (weapon atau armor)
-        const itemCode = interaction.options.getString('item_id'); // Unique code dari item
-        const userId = interaction.user.id; // User yang menerima trade
+        const traderUser = interaction.options.getUser('trader'); // User who sent the trade
+        const itemType = interaction.options.getString('type'); // Type of item (weapon, armor, or accessory)
+        const itemCode = interaction.options.getString('item_id'); // Unique code of the item
+        const userId = interaction.user.id; // User accepting the trade
 
         try {
             let item;
             if (itemType === 'weapon') {
-                // Cari senjata berdasarkan kode unik
+                // Find weapon by unique code
                 item = await Weapon.findOne({ uniqueCode: itemCode });
                 if (!item) {
-                    return interaction.editReply('⚠️ Senjata tidak ditemukan.');
+                    return interaction.editReply('⚠️ Weapon not found.');
                 }
             } else if (itemType === 'armor') {
-                // Cari armor berdasarkan kode unik
+                // Find armor by unique code
                 item = await Armor.findOne({ uniqueCode: itemCode });
                 if (!item) {
-                    return interaction.editReply('⚠️ Armor tidak ditemukan.');
+                    return interaction.editReply('⚠️ Armor not found.');
+                }
+            } else if (itemType === 'accessory') {
+                // Find accessory by unique code
+                item = await Accessory.findOne({ uniqueCode: itemCode });
+                if (!item) {
+                    return interaction.editReply('⚠️ Accessory not found.');
                 }
             }
 
-            // Cari inventory trader
+            // Find trader's inventory
             const traderInventory = await Inventory.findOne({ userId: traderUser.id });
             if (!traderInventory) {
-                return interaction.editReply('⚠️ Trader tidak memiliki inventory.');
+                return interaction.editReply('⚠️ Trader does not have an inventory.');
             }
 
-            // Cek apakah item ada di inventory trader
-            const itemIndex = traderInventory[itemType === 'weapon' ? 'weapons' : 'armors'].indexOf(item._id);
+            // Check if the item exists in the trader's inventory
+            const itemIndex = traderInventory[itemType === 'weapon' ? 'weapons' : itemType === 'armor' ? 'armors' : 'accessories'].indexOf(item._id);
             if (itemIndex === -1) {
-                return interaction.editReply(`⚠️ Trader tidak memiliki ${itemType === 'weapon' ? 'senjata' : 'armor'} ini.`);
+                return interaction.editReply(`⚠️ Trader does not have this ${itemType === 'weapon' ? 'weapon' : itemType === 'armor' ? 'armor' : 'accessory'}.`);
             }
 
-            // Cari inventory penerima trade (user yang menerima)
+            // Find the inventory of the user accepting the trade
             const userInventory = await Inventory.findOne({ userId });
             if (!userInventory) {
-                return interaction.editReply('⚠️ Kamu tidak memiliki inventory.');
+                return interaction.editReply('⚠️ You do not have an inventory.');
             }
 
-            // Pindahkan item dari trader ke penerima
-            traderInventory[itemType === 'weapon' ? 'weapons' : 'armors'].splice(itemIndex, 1); // Hapus item dari inventory trader
-            userInventory[itemType === 'weapon' ? 'weapons' : 'armors'].push(item._id); // Tambahkan item ke inventory penerima
+            // Move the item from the trader to the recipient
+            traderInventory[itemType === 'weapon' ? 'weapons' : itemType === 'armor' ? 'armors' : 'accessories'].splice(itemIndex, 1); // Remove item from trader's inventory
+            userInventory[itemType === 'weapon' ? 'weapons' : itemType === 'armor' ? 'armors' : 'accessories'].push(item._id); // Add item to recipient's inventory
 
-            // Perbarui pemilik item
+            // Update the owner of the item
             item.ownerId = userId;
             await item.save();
 
-            // Simpan perubahan di inventory masing-masing
+            // Save changes to both inventories
             await traderInventory.save();
             await userInventory.save();
 
-            return interaction.editReply(`✅ Trade berhasil! Kamu telah menerima **${item.name}** dari ${traderUser.username}.`);
+            return interaction.editReply(`✅ Trade successful! You have received **${item.name}** from ${traderUser.username}.`);
         } catch (error) {
-            console.error('Terjadi kesalahan:', error);
-            return interaction.editReply('⚠️ Terjadi kesalahan saat menerima trade.');
+            console.error('An error occurred:', error);
+            return interaction.editReply('⚠️ An error occurred while accepting the trade.');
         }
     }
 };
-

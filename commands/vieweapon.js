@@ -39,7 +39,7 @@ module.exports = {
             )
             .setImage(weapon.imageUrl) // Menampilkan gambar senjata
             .setTimestamp()
-            .setFooter({ text: 'Gunakan perintah lain untuk mengelola senjata ini.' });
+            .setFooter({ text: '✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!' });
 
         // Kirim embed ke channel
         await interaction.reply({ embeds: [embed] });

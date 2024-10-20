@@ -21,8 +21,8 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setTitle('🏆 Leaderboard Level 🏆')
                 .setColor('#FFD700') // Warna emas untuk leaderboard
-                .setTimestamp();
-
+                .setTimestamp()
+                .setFooter({ text: `✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!` });
             topUsers.forEach((user, index) => {
                 embed.addFields({
                     name: `${index + 1}. ${user.username}`,

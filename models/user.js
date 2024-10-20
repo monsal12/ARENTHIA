@@ -8,9 +8,11 @@ const userSchema = new Schema({
     skills: { type: [String], default: [] },
     level: { type: Number, default: 1 },
     weapons: [{ type: Schema.Types.ObjectId, ref: 'Weapon' }],
-    armors: [{ type: Schema.Types.ObjectId, ref: 'Armor' }], // Tambahkan jalur armors di sini
+    armors: [{ type: Schema.Types.ObjectId, ref: 'Armor' }],
+    accessories: [{ type: Schema.Types.ObjectId, ref: 'Accessory' }], // Correct reference to 'Accessory'
     equippedWeapon: { type: Schema.Types.ObjectId, ref: 'Weapon', default: null },
-    equippedArmor: { type: Schema.Types.ObjectId, ref: 'Armor', default: null }, // Tambahkan untuk armor
+    equippedArmor: { type: Schema.Types.ObjectId, ref: 'Armor', default: null },
+    equippedAccessory: { type: Schema.Types.ObjectId, ref: 'Accessory', default: null }, // Added equippedAccessory
     experience: { type: Number, default: 0 },
     spyr: { type: Number, default: 5 },
     health: {
@@ -41,8 +43,6 @@ const userSchema = new Schema({
         legendary: { type: Number, default: 0 },
     },
     huntingCooldown: { type: Date, default: Date.now },
-    
-    // Tambahkan field 'hunger' dan 'thirst' di sini
     hunger: { type: Number, default: 100 }, // Level lapar
     thirst: { type: Number, default: 100 }, // Level haus
 });

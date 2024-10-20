@@ -50,7 +50,7 @@ module.exports = {
                 .setColor('#FFD700') // Warna emas untuk kesan monarki
                 .setTitle('📜 **Skill yang Tersedia**')
                 .setDescription(`Berikut adalah skill yang bisa dipelajari oleh pahlawan yang berjaya:\n\n${skillList}`)
-                .setFooter({ text: '⚔️ Bersiaplah untuk menguasai kekuatan legendaris!' })
+                .setFooter({ text: `✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!` })
                 .setTimestamp();
 
             // Mengedit balasan untuk mengirimkan embed

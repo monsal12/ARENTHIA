@@ -2,22 +2,24 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const User = require('../models/user');
 const Inventory = require('../models/inventory');
 const Weapon = require('../models/weapon');
-const Armor = require('../models/armor'); // Ensure the Armor model is imported
+const Armor = require('../models/armor'); // Pastikan model Armor diimpor
+const Accessory = require('../models/accessory'); // Pastikan model Accessory diimpor
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('equip')
-        .setDescription('Equip a weapon or armor')
+        .setDescription('Equip a weapon, armor, or accessory')
         .addStringOption(option =>
             option.setName('id')
-                .setDescription('The unique code of the weapon or armor to equip')
+                .setDescription('The unique code of the item to equip')
                 .setRequired(true))
         .addStringOption(option =>
             option.setName('type')
-                .setDescription('Type of the item (weapon or armor)')
+                .setDescription('Type of the item (weapon, armor, or accessory)')
                 .addChoices(
                     { name: 'weapon', value: 'weapon' },
-                    { name: 'armor', value: 'armor' }
+                    { name: 'armor', value: 'armor' },
+                    { name: 'accessory', value: 'accessory' } // Menambahkan pilihan aksesoris
                 )
                 .setRequired(true)),
     async execute(interaction) {
@@ -33,7 +35,7 @@ module.exports = {
             }
 
             // Find the user's inventory
-            const inventory = await Inventory.findOne({ userId: userId }).populate('weapons').populate('armors');
+            const inventory = await Inventory.findOne({ userId: userId }).populate('weapons').populate('armors').populate('accessories'); // Menambahkan populate untuk aksesoris
             if (!inventory) {
                 return interaction.reply('⚠️ You don\'t have an inventory.');
             }
@@ -107,6 +109,40 @@ module.exports = {
                 user.stats.strength += item.strength;
                 user.stats.intelligence += item.intelligence;
                 user.stats.ability += item.ability;
+
+            } else if (itemType === 'accessory') {
+                // Find accessory by unique code
+                item = await Accessory.findOne({ uniqueCode: itemId });
+                if (!item) {
+                    return interaction.reply('⚠️ Accessory not found.');
+                }
+
+                // Check if the accessory is in the user's inventory
+                const accessoryInInventory = inventory.accessories.some(a => String(a._id) === String(item._id));
+                if (!accessoryInInventory) {
+                    return interaction.reply('⚠️ You do not own this accessory.');
+                }
+
+                // Prevent equipping the same accessory
+                if (user.equippedAccessory && String(user.equippedAccessory) === String(item._id)) {
+                    return interaction.reply('⚠️ You already have this accessory equipped.');
+                }
+
+                // If the user has another accessory equipped, remove the stats from the current accessory
+                if (user.equippedAccessory) {
+                    const currentlyEquippedAccessory = await Accessory.findById(user.equippedAccessory);
+                    if (currentlyEquippedAccessory) {
+                        user.stats.strength -= currentlyEquippedAccessory.strength;
+                        user.stats.intelligence -= currentlyEquippedAccessory.intelligence;
+                        user.stats.ability -= currentlyEquippedAccessory.ability;
+                    }
+                }
+
+                // Equip the new accessory and apply its stats
+                user.equippedAccessory = item._id;
+                user.stats.strength += item.strength;
+                user.stats.intelligence += item.intelligence;
+                user.stats.ability += item.ability;
             }
 
             // Save changes to the user
@@ -115,8 +151,8 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor('#00FF00')
                 .setTitle(`✅ Successfully equipped **${item.name}**!`)
-                .setDescription(`Your stats have been updated:\n- Strength: ${user.stats.strength}\n- Intelligence: ${user.stats.intelligence}\n- Ability: ${user.stats.ability}`);
-
+                .setDescription(`Your stats have been updated:\n- Strength: ${user.stats.strength}\n- Intelligence: ${user.stats.intelligence}\n- Ability: ${user.stats.ability}`)
+                .setFooter({ text: `✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!` });
             return interaction.reply({ embeds: [embed] });
         } catch (error) {
             console.error('Error equipping item:', error);

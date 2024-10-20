@@ -119,8 +119,8 @@ module.exports = {
         const finalEmbed = new EmbedBuilder()
           .setColor('#FFD700')
           .setTitle('Permainan Selesai!')
-          .setDescription(`**Kartu kamu:** ${playerHand.map(card => cardEmojis[card]).join(', ')} (Total: ${calculateTotal(playerHand)})\n**Kartu dealer:** ${dealerHand.map(card => cardEmojis[card]).join(', ')} (Total: ${dealerTotal})`);
-
+          .setDescription(`**Kartu kamu:** ${playerHand.map(card => cardEmojis[card]).join(', ')} (Total: ${calculateTotal(playerHand)})\n**Kartu dealer:** ${dealerHand.map(card => cardEmojis[card]).join(', ')} (Total: ${dealerTotal})`)
+          .setFooter({ text: `✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!` });
         let resultMessage = '';
 
         const playerFinalTotal = calculateTotal(playerHand);

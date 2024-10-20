@@ -51,7 +51,9 @@ module.exports = {
             .setDescription(`**Jumlah Heal**: ${healAmount} HP\n**HP Sebelum**: ${healthBefore}/${user.health.max}\n**HP Sekarang**: ${newHealth}/${user.health.max}`)
             .setColor(0x00FF00) // Menggunakan hexadecimal untuk hijau
             .setThumbnail(targetUser.displayAvatarURL()) // Avatar pengguna yang di-heal
-            .setTimestamp();
+            .setTimestamp()
+            .setFooter({ text: `✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!` })
+        
 
         await interaction.reply({ embeds: [embed] });
     }

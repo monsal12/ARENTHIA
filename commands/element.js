@@ -12,6 +12,7 @@ module.exports = {
             .setColor('#f1c40f')
             .setTitle('Daftar Elemen')
             .setDescription('Setiap elemen memiliki tipe dan kelemahan tersendiri.')
+            .setFooter({ text: `✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!` })
             .addFields(
                 { name: '#1 | Flame <:flame_custom:1293529213734883371>', value: 'Tipe: Damage\nKelemahan: Light, Wave, Terra\nElemen Flame memungkinkan penggunanya untuk menggunakan kekuatan dari efek panas yang intens, seperti api, dan bahkan magma.', inline: false },
                 { name: '#2 | Volt <:volt_custom:1293529328285384768>', value: 'Tipe: Damage + Defense\nKelemahan: Terra\nVolt memungkinkan penggunanya untuk menggunakan kekuatan dari arus listrik dan petir.\nEfektivitas serangan dan pertahanannya rata-rata, tapi sulit untuk dilawan selain oleh Terra.', inline: false },

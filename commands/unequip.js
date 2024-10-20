@@ -2,17 +2,19 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const User = require('../models/user');
 const Weapon = require('../models/weapon');
 const Armor = require('../models/armor');
+const Accessory = require('../models/accessory'); // Assuming you have an Accessory model
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('unequip')
-        .setDescription('Unequip the current weapon or armor')
+        .setDescription('Unequip the current weapon, armor, or accessory')
         .addStringOption(option =>
             option.setName('type')
-                .setDescription('Type of the item to unequip (weapon or armor)')
+                .setDescription('Type of the item to unequip (weapon, armor, or accessory)')
                 .addChoices(
                     { name: 'weapon', value: 'weapon' },
-                    { name: 'armor', value: 'armor' }
+                    { name: 'armor', value: 'armor' },
+                    { name: 'accessory', value: 'accessory' } // Added accessory option
                 )
                 .setRequired(true)
         ),
@@ -22,7 +24,8 @@ module.exports = {
 
         const user = await User.findOne({ discordId: userId })
             .populate('weapons')
-            .populate('armors'); // Ensure armors are populated
+            .populate('armors')
+            .populate('accessories'); // Ensure accessories are populated
 
         if (!user) {
             return interaction.reply('⚠️ User not found.');
@@ -61,21 +64,32 @@ module.exports = {
                     return interaction.reply('⚠️ Equipped armor not found.');
                 }
 
-                // Debugging logs
-                console.log('Currently equipped armor:', currentlyEquippedArmor);
-                console.log(`Before unequip - Strength: ${user.stats.strength}, Intelligence: ${user.stats.intelligence}, Ability: ${user.stats.ability}`);
-                
                 // Revert armor stats
                 user.stats.strength -= currentlyEquippedArmor.strength || 0; 
                 user.stats.intelligence -= currentlyEquippedArmor.intelligence || 0;
                 user.stats.ability -= currentlyEquippedArmor.ability || 0;
-                
-                console.log(`Armor stats - Strength: ${currentlyEquippedArmor.statBoost?.strength}, Intelligence: ${currentlyEquippedArmor.statBoost?.intelligence}, Ability: ${currentlyEquippedArmor.statBoost?.ability}`);
-                console.log(`After unequip - Strength: ${user.stats.strength}, Intelligence: ${user.stats.intelligence}, Ability: ${user.stats.ability}`);
-                
                 itemName = currentlyEquippedArmor.name;
 
                 user.equippedArmor = null; // Unequip armor
+
+            } else if (itemType === 'accessory') {
+                if (!user.equippedAccessory) {
+                    return interaction.reply('⚠️ You do not have any accessory equipped.');
+                }
+
+                const currentlyEquippedAccessory = await Accessory.findById(user.equippedAccessory);
+                if (!currentlyEquippedAccessory) {
+                    console.error('Currently equipped accessory not found:', user.equippedAccessory);
+                    return interaction.reply('⚠️ Equipped accessory not found.');
+                }
+
+                // Revert accessory stats
+                user.stats.strength -= currentlyEquippedAccessory.strength || 0;
+                user.stats.intelligence -= currentlyEquippedAccessory.intelligence || 0;
+                user.stats.ability -= currentlyEquippedAccessory.ability || 0;
+                itemName = currentlyEquippedAccessory.name;
+
+                user.equippedAccessory = null; // Unequip accessory
             }
 
             await user.save();
@@ -83,8 +97,8 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor('#FF0000')
                 .setTitle(`❌ Successfully unequipped **${itemName}**!`)
-                .setDescription(`Your stats have been updated:\n- Strength: ${user.stats.strength}\n- Intelligence: ${user.stats.intelligence}\n- Ability: ${user.stats.ability}`);
-
+                .setDescription(`Your stats have been updated:\n- Strength: ${user.stats.strength}\n- Intelligence: ${user.stats.intelligence}\n- Ability: ${user.stats.ability}`)
+                .setFooter({ text: `✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!` })
             return interaction.reply({ embeds: [embed] });
 
         } catch (error) {
@@ -93,4 +107,3 @@ module.exports = {
         }
     }
 };
-

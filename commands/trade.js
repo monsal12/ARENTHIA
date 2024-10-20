@@ -2,25 +2,27 @@ const { SlashCommandBuilder } = require('discord.js');
 const Inventory = require('../models/inventory');
 const Weapon = require('../models/weapon');
 const Armor = require('../models/armor'); // Make sure Armor model is imported
+const Accessory = require('../models/accessory'); // Import Accessory model
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('trade')
-        .setDescription('Trade weapon or armor with another user')
+        .setDescription('Trade weapon, armor, or accessory with another user')
         .addUserOption(option => 
             option.setName('target')
                 .setDescription('User to trade with')
                 .setRequired(true))
         .addStringOption(option =>
             option.setName('item_id')
-                .setDescription('Unique code of the item (weapon or armor) to trade')
+                .setDescription('Unique code of the item (weapon, armor, or accessory) to trade')
                 .setRequired(true))
         .addStringOption(option =>
             option.setName('type')
-                .setDescription('Type of the item (weapon or armor)')
+                .setDescription('Type of the item (weapon, armor, or accessory)')
                 .addChoices(
                     { name: 'weapon', value: 'weapon' },
-                    { name: 'armor', value: 'armor' }
+                    { name: 'armor', value: 'armor' },
+                    { name: 'accessory', value: 'accessory' } // Add accessory option
                 )
                 .setRequired(true)),
     async execute(interaction) {
@@ -34,7 +36,7 @@ module.exports = {
         try {
             let item;
 
-            // Check if the item is a weapon or armor
+            // Check if the item is a weapon, armor, or accessory
             if (itemType === 'weapon') {
                 item = await Weapon.findOne({ uniqueCode: itemId });
                 if (!item) {
@@ -45,6 +47,11 @@ module.exports = {
                 if (!item) {
                     return await interaction.editReply('⚠️ Armor not found.');
                 }
+            } else if (itemType === 'accessory') {
+                item = await Accessory.findOne({ uniqueCode: itemId });
+                if (!item) {
+                    return await interaction.editReply('⚠️ Accessory not found.');
+                }
             }
 
             const userInventory = await Inventory.findOne({ userId });
@@ -54,10 +61,12 @@ module.exports = {
 
             const itemIndex = itemType === 'weapon' 
                 ? userInventory.weapons.indexOf(item._id) 
-                : userInventory.armors.indexOf(item._id);
+                : itemType === 'armor' 
+                ? userInventory.armors.indexOf(item._id) 
+                : userInventory.accessories.indexOf(item._id); // Handle accessories
 
             if (itemIndex === -1) {
-                return await interaction.editReply(`⚠️ You do not have this ${itemType === 'weapon' ? 'weapon' : 'armor'} in your inventory.`);
+                return await interaction.editReply(`⚠️ You do not have this ${itemType} in your inventory.`);
             }
 
             const targetInventory = await Inventory.findOne({ userId: targetUser.id });

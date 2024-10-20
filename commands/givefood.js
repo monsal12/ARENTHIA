@@ -24,7 +24,7 @@ module.exports = {
                 .setDescription('Persentase makanan atau minuman yang ingin diberikan (1-100%)')
                 .setRequired(true)
         ),
-
+            
     async execute(interaction) {
         // Role ID yang diizinkan untuk menggunakan command
         const allowedRoles = ['1246365106846044262', '1262721701733470249'];

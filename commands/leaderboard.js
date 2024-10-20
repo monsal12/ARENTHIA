@@ -16,8 +16,8 @@ module.exports = {
             .setColor('#0099ff')
             .setTitle('Leaderboard Celes')
             .setDescription('Berikut adalah leaderboard celes:')
-            .setTimestamp();
-
+            .setTimestamp()
+            .setFooter({ text: `✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!` });
         // Menambahkan setiap pengguna ke embed
         users.forEach((user, index) => {
             embed.addFields({ name: `#${index + 1}: ${user.username}`, value: `${user.celes} celes`, inline: true });

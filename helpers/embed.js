@@ -18,7 +18,7 @@ function createProfileEmbed(user, viewType, avatarURL) {
         .setTitle(`✨ ${user.username}'s Epic Profile ✨`)
         .setColor('#00FF9D')  // Use a vibrant green-blue color
         .setThumbnail(avatarURL)  // Show user avatar
-        .setFooter({ text: '⚔️ Status karaktermu', iconURL: 'https://some-url.com/footer-icon.png' }) // Add footer icon
+        .setFooter({ text: '✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!', iconURL: 'https://some-url.com/footer-icon.png' }) // Add footer icon
         .setTimestamp()
         .setDescription('💼 **Karakter Stats**');
 

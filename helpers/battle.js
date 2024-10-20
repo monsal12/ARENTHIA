@@ -37,8 +37,8 @@ const initBattle = async (interaction, user) => {
             { name: 'Kesehatan Monster', value: `${monsterHealth}`, inline: true }
         )
         .setColor(Colors.Blue)
-        .setImage(monster.imageUrl);
-
+        .setImage(monster.imageUrl)
+        .setFooter({ text: '✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!' });
     const row = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
