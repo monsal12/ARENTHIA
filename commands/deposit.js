@@ -60,6 +60,6 @@ module.exports = {
 
         await bank.save();
 
-        interaction.reply({ content: `✅ Kamu telah berhasil menyimpan **${amountAfterTax} celes** ke bank **${bankName}** setelah pajak 15%!` });
+        interaction.reply({ content: `✅ Kamu telah berhasil menyimpan **${amountAfterTax} celes** ke bank **${bankName}** setelah pajak 14%!` });
     },
 };
