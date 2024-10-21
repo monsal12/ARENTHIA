@@ -3,6 +3,7 @@ const { Schema, model, models } = require('mongoose');
 const userSchema = new Schema({
     discordId: { type: String, required: true, unique: true },
     username: { type: String, required: true },
+    title: { type: String, default: 'Pengembara' },
     gachaCount: { type: Number, default: 0 },
     element: { type: String },
     skills: { type: [String], default: [] },

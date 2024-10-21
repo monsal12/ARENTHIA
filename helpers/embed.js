@@ -27,6 +27,8 @@ function createProfileEmbed(user, viewType, avatarURL) {
             { name: '🧙‍♂️ **Level**', value: `${user.level}`, inline: true },
             { name: '💠 **Spyr Points**', value: `${user.spyr}`, inline: true },
             { name: '**Element**', value: `${user.element}`, inline: true },
+            { name: '🏅 **Title**', value: user.title || 'No title set', inline: true },
+
             { name: '\u200B', value: '\u200B' }, 
             { 
                 name: '🧭 **Experience**', 
