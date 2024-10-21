@@ -38,7 +38,7 @@ module.exports = {
             return interaction.editReply({ content: 'Saldo celes tidak cukup untuk transfer!', ephemeral: true });
         }
 
-        const fee = Math.floor(amount * 0.15); // Biaya 15% dari jumlah transfer
+        const fee = Math.floor(amount * 0.14); // Biaya 15% dari jumlah transfer
         const totalDeduction = amount + fee; // Jumlah total yang akan dikurangi dari saldo pengirim
 
         // Memastikan pengirim memiliki saldo yang cukup untuk menutupi jumlah transfer + biaya

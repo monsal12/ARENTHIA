@@ -39,7 +39,7 @@ module.exports = {
         }
 
         // Calculate the tax (15%)
-        const tax = depositAmount * 0.15; // 15% tax
+        const tax = depositAmount * 0.14; // 15% tax
         const amountAfterTax = depositAmount - tax; // Amount to deposit after tax
 
         // Update the bank's celes and user celes
