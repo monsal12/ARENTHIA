@@ -74,18 +74,24 @@ module.exports = {
         // Tunggu selama flip
         await new Promise(resolve => setTimeout(resolve, flipDuration));
 
+        // Tentukan peluang kemenangan
+        const winChance = Math.random() < 0.1; // 10% peluang kemenangan
+
         // Tentukan hasil akhir flip
-        const finalResult = results[Math.floor(Math.random() * results.length)];
+        let finalResult;
+        if (winChance) {
+            finalResult = userChoice; // Pemain menang jika masuk 10%
+        } else {
+            // Pilih hasil yang berbeda dari pilihan pengguna
+            finalResult = userChoice === 'Kepala' ? 'Ekor' : 'Kepala';
+        }
 
         // Update embed dengan hasil akhir
         embed.setDescription(`Hasil flip koin: **${emojiMap[finalResult]} ${finalResult}**`);
         await flipMessage.edit({ embeds: [embed] });
 
-        // Tentukan peluang kemenangan
-        const winOutcome = userChoice === finalResult; // Pengguna menang jika pilihan sama dengan hasil
-
         // Check hasil flip
-        if (winOutcome) {
+        if (winChance) {
             // Menang: Ambil celes dari akun sistem dan berikan ke user
             const winAmount = betAmount * 2; // Pengguna mendapatkan dua kali lipat taruhan
             systemAccount.celes -= winAmount;

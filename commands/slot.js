@@ -84,12 +84,12 @@ module.exports = {
         await slotMessage.edit({ embeds: [embed] });
 
         // Tentukan peluang kemenangan
-        const finalOutcome = Math.random() < 0.3; // 30% chance to win
+        const finalOutcome = Math.random() < 0.1; // 30% chance to win
 
         // Check hasil slot
         if (finalOutcome) {
             // Menang: Ambil celes dari akun sistem dan berikan ke user
-            const winAmount = betAmount * 3; // Contoh hadiah 3 kali lipat
+            const winAmount = betAmount * 2; // Contoh hadiah 3 kali lipat
             if (systemAccount.celes < winAmount) {
                 return interaction.followUp({ content: 'Akun sistem tidak memiliki cukup celes untuk membayar kemenanganmu!', ephemeral: true });
             }
