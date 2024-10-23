@@ -6,6 +6,20 @@ const Inventory = require('../models/inventory');
 
 const systemAccountId = '994553740864536596'; // Discord ID akun sistem
 
+async function generateUniqueCode() {
+    let uniqueCode;
+    let exists = true;
+
+    while (exists) {
+        uniqueCode = `WPN${Math.floor(1000 + Math.random() * 9000)}`;
+        // Cek apakah kode unik sudah ada
+        const existingWeapon = await Weapon.findOne({ uniqueCode });
+        exists = !!existingWeapon; // Jika weapon ada, teruskan loop
+    }
+
+    return uniqueCode;
+}
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('gacha')
@@ -24,6 +38,7 @@ module.exports = {
         // Hitung total biaya gacha
         const totalCost = jumlahGacha * 800; // Biaya per gacha
 
+        // Cek apakah pengguna memiliki cukup celes
         if (!user || user.celes < totalCost) {
             return interaction.reply('⚠️ Kamu tidak memiliki cukup celes untuk melakukan gacha.');
         }
@@ -36,14 +51,15 @@ module.exports = {
 
             // Lakukan gacha sesuai jumlah yang diminta
             for (let i = 0; i < jumlahGacha; i++) {
-                const randomWeapon = gacha.pullRandomWeapon(gachaRateBoost); // Menggunakan fungsi gacha dengan rate boost
+                const randomWeapon = gacha.pullRandomWeapon(); // Mendapatkan senjata acak
 
                 if (!randomWeapon) {
                     return interaction.editReply('⚠️ Tidak ada senjata yang dapat ditarik. Silakan coba lagi.'); // Validasi randomWeapon
                 }
 
-                const uniqueCode = `WPN${Math.floor(1000 + Math.random() * 9000)}`;
+                const uniqueCode = await generateUniqueCode(); // Mendapatkan kode unik
 
+                // Membuat senjata baru
                 const newWeapon = new Weapon({
                     name: randomWeapon.name,
                     grade: randomWeapon.grade,
@@ -63,9 +79,11 @@ module.exports = {
                 await systemAccount.save();
             }
 
+            // Kurangi celes dari pengguna
             user.celes -= totalCost;
             await user.save();
 
+            // Update inventory
             let inventory = await Inventory.findOne({ userId: userId });
             if (!inventory) {
                 inventory = new Inventory({ userId: userId, weapons: [] });
@@ -77,6 +95,7 @@ module.exports = {
 
             await inventory.save();
 
+            // Membuat embed untuk menampilkan senjata yang diperoleh
             const embed = new EmbedBuilder()
                 .setColor('#FFD700')
                 .setTitle('🎉 Kamu mendapatkan senjata!')
