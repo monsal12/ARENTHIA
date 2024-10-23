@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const gacha = require('../Data/gachaPool');
+const gacha = require('../Data/gachaPool'); // Pastikan gacha pool diatur dengan benar
 const Weapon = require('../models/weapon');
 const User = require('../models/user');
 const Inventory = require('../models/inventory');
@@ -22,7 +22,7 @@ module.exports = {
         const jumlahGacha = interaction.options.getInteger('jumlah');
 
         // Hitung total biaya gacha
-        const totalCost = jumlahGacha * 800;
+        const totalCost = jumlahGacha * 800; // Biaya per gacha
 
         if (!user || user.celes < totalCost) {
             return interaction.reply('⚠️ Kamu tidak memiliki cukup celes untuk melakukan gacha.');
@@ -79,8 +79,8 @@ module.exports = {
 
             const embed = new EmbedBuilder()
                 .setColor('#FFD700')
-                .setTitle(`🎉 Kamu mendapatkan senjata!`)
-                .setDescription(`Berikut senjata yang kamu peroleh:`)
+                .setTitle('🎉 Kamu mendapatkan senjata!')
+                .setDescription('Berikut senjata yang kamu peroleh:')
                 .setFooter({ text: `Total gacha: ${jumlahGacha} ✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!` });
 
             obtainedWeapons.forEach(weapon => {

@@ -59,7 +59,7 @@ module.exports = {
 
                 // Tambahkan celes ke akun sistem
                 const systemAccount = await User.findOne({ discordId: systemAccountId }); // Mencari akun sistem berdasarkan Discord ID
-                systemAccount.celes += 500; // Tambahkan celes untuk setiap gacha aksesoris
+                systemAccount.celes += 1300; // Tambahkan celes untuk setiap gacha aksesoris
                 await systemAccount.save();
             }
 
