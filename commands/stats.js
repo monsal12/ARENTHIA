@@ -37,11 +37,8 @@ module.exports = {
         }
 
         // You can set a maximum limit for each stat if necessary
-<<<<<<< HEAD
-        const MAX_STAT_VALUE = 100000; // Example limit
-=======
+
         const MAX_STAT_VALUE = 1000000000; // Example limit
->>>>>>> 4a983d645ad70c651aeb1505427acaa7679174d8
         if (user.stats[statType] + amount > MAX_STAT_VALUE) {
             return interaction.reply(`Poin yang dialokasikan melebihi batas maksimum ${MAX_STAT_VALUE} untuk ${statType}.`);
         }
