@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { pullRandomAksesoris } = require('../Data/gachapoolaksesoris'); // Import fungsi dari gacha pool
+const { pullRandomAksesoris } = require('../Data/gachapoolAksesoris'); // Import fungsi dari gacha pool
 const Accessory = require('../models/accessory');
 const User = require('../models/user');
 const Inventory = require('../models/inventory');

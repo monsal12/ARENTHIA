@@ -18,7 +18,7 @@ module.exports = {
                 },
                 {
                     name: 'Nomor Rekening/VA',
-                    value: '✅ **Dana**: 082274224264\n✅ **GoPay**: 082274224264\n✅ **Ovo**: 082274224264\n✅ **SeaBank**: 901856538410',
+                    value: '✅ **Dana**:tanya etmin\n✅ **GoPay**:tanya etmin\n✅ **Ovo**:tanya etmin\n✅ **SeaBank**: 901856538410',
                     inline: false
                 },
                 {
