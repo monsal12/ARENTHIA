@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const Bank = require('../models/bank'); // Sesuaikan path ke model Bank
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js'); // Ganti MessageEmbed dengan EmbedBuilder
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -34,7 +34,7 @@ module.exports = {
             });
 
             // Kirimkan leaderboard sebagai embed
-            const embed = new MessageEmbed()
+            const embed = new EmbedBuilder() // Ganti MessageEmbed dengan EmbedBuilder
                 .setTitle('Top 10 Bank dengan Simpanan Terbanyak')
                 .setDescription(leaderboardText)
                 .setColor('#FFD700');
