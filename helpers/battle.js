@@ -6,11 +6,17 @@ const User = require('../models/user'); // Import User model for system account
 
 const cooldowns = new Map(); // To store user cooldowns
 
+const roleBonuses = {
+    '1259877764304212059': { xpBonus: 10, celesBonus: 10 },
+    '1259770078581358612': { xpBonus: 30, celesBonus: 30 },
+    '1290094741618167808': { xpBonus: 40, celesBonus: 40 },
+    '1270722170733203506': { xpBonus: 60, celesBonus: 60 },
+};
+
 const initBattle = async (interaction, user) => {
     const now = Date.now();
     const cooldownAmount = 15 * 60 * 1000; // 15 minutes in milliseconds
 
-    // Check if user has a cooldown and completed battle (win/lose)
     if (cooldowns.has(interaction.user.id)) {
         const expirationTime = cooldowns.get(interaction.user.id) + cooldownAmount;
         if (now < expirationTime) {
@@ -39,36 +45,24 @@ const initBattle = async (interaction, user) => {
         .setColor(Colors.Blue)
         .setImage(monster.imageUrl)
         .setFooter({ text: '✨ Jadilah Bangsawan di Arenithia! Raih EXP dan Celes lebih banyak untuk eksplorasi, raid, dan event! 🔗 Gunakan /premium untuk detail harga dan pembelian!' });
+
     const row = new ActionRowBuilder()
         .addComponents(
-            new ButtonBuilder()
-                .setCustomId('attack')
-                .setLabel('Serang')
-                .setStyle(ButtonStyle.Primary),
-            new ButtonBuilder()
-                .setCustomId('defend')
-                .setLabel('Bertahan')
-                .setStyle(ButtonStyle.Secondary),
-            new ButtonBuilder()
-                .setCustomId('flee')
-                .setLabel('Kabur')
-                .setStyle(ButtonStyle.Danger)
+            new ButtonBuilder().setCustomId('attack').setLabel('Serang').setStyle(ButtonStyle.Primary),
+            new ButtonBuilder().setCustomId('defend').setLabel('Bertahan').setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder().setCustomId('flee').setLabel('Kabur').setStyle(ButtonStyle.Danger)
         );
 
     const skillOptions = user.skills.map(userSkill => {
         const skillData = skills.find(s => s.name === userSkill);
         if (!skillData) return { label: 'Skill Tidak Dikenal', value: 'undefined-skill', description: 'Skill tidak tersedia' };
 
-        const label = skillData.name.substring(0, 25);
-        let description = `Mana: ${skillData.manaCost || 0}, Stamina: ${skillData.staminaCost || 0}, Damage: ${skillData.damageFactor || 0}, Healing: ${skillData.healingFactor || 0}`;
-        description = description.substring(0, 100);
-
         return {
-            label: label,
+            label: skillData.name.substring(0, 25),
             value: skillData.name,
-            description: description,
+            description: `Mana: ${skillData.manaCost || 0}, Stamina: ${skillData.staminaCost || 0}, Damage: ${skillData.damageFactor || 0}, Healing: ${skillData.healingFactor || 0}`,
         };
-    }).filter(option => option.label.length > 0 && option.description.length > 0);
+    });
 
     const selectMenu = new StringSelectMenuBuilder()
         .setCustomId('selectSkill')
@@ -83,18 +77,11 @@ const initBattle = async (interaction, user) => {
     const actionCollector = interaction.channel.createMessageComponentCollector({ filter, time: 30000 });
 
     actionCollector.on('collect', async i => {
-        if (i.replied || i.deferred) return; 
+        if (i.replied || i.deferred) return;
         await i.deferUpdate();
 
         let responseMessage = '';
-
-        const applyMonsterAttack = (userHealth, monster) => {
-            const monsterAttack = monster.attack || 0;
-            const monsterDamage = Math.max(0, monsterAttack - (user.stats.defense || 0));
-            userHealth -= monsterDamage;
-            return { userHealth, monsterDamage };
-        };
-
+        
         switch (i.customId) {
             case 'attack':
                 const { damage, isCritical } = calculateDamage(user, monster);
@@ -105,8 +92,7 @@ const initBattle = async (interaction, user) => {
             case 'defend':
                 const userDefense = user.stats.ability || 0;
                 const damageReduction = Math.floor(userDefense * 0.5);
-                const monsterAttack = monster.attack || 0;
-                const mitigatedDamage = Math.max(0, monsterAttack - damageReduction);
+                const mitigatedDamage = Math.max(0, (monster.attack || 0) - damageReduction);
                 userHealth -= mitigatedDamage;
                 responseMessage = `Kamu bertahan dan mengurangi damage sebesar ${damageReduction} poin! ${monster.name} menyerang kamu dan menyebabkan ${mitigatedDamage} poin damage!`;
                 break;
@@ -114,61 +100,14 @@ const initBattle = async (interaction, user) => {
             case 'flee':
                 actionCollector.stop();
                 return interaction.followUp('Kamu berhasil melarikan diri!');
-                
-                case 'selectSkill':
-                    const selectedSkillName = i.values[0];
-                    const selectedSkill = skills.find(skill => skill.name === selectedSkillName);
-                    if (!selectedSkill) {
-                        return interaction.followUp('Skill tidak valid!');
-                    }
-                
-                    // Cek apakah user memiliki cukup mana dan stamina
-                    const hasEnoughMana = selectedSkill.manaCost ? userMana >= selectedSkill.manaCost : true;
-                    const hasEnoughStamina = selectedSkill.staminaCost ? userStamina >= selectedSkill.staminaCost : true;
-                
-                    if (hasEnoughMana && hasEnoughStamina) {
-                        // Kurangi mana dan stamina user sesuai cost
-                        if (selectedSkill.manaCost) userMana -= selectedSkill.manaCost;
-                        if (selectedSkill.staminaCost) userStamina -= selectedSkill.staminaCost;
-                
-                        let healingAmount = 0;
-                
-                        // Jika skill memiliki healing factor, hitung penyembuhan berdasarkan intelligence
-                        if (selectedSkill.healingFactor) {
-                            healingAmount = Math.floor(selectedSkill.healingFactor * user.stats.intelligence);
-                            userHealth = Math.min(user.health.max, userHealth + healingAmount);
-                            responseMessage = `Kamu menggunakan skill ${selectedSkill.name} dan memulihkan ${healingAmount} HP!`;
-                        
-                        // Jika skill memiliki damage factor
-                        } else if (selectedSkill.damageFactor) {
-                            let skillDamage = 0;
-                            
-                            // Jika skill menggunakan mana, hitung damage berdasarkan intelligence
-                            if (selectedSkill.manaCost && selectedSkill.manaCost > 0) {
-                                skillDamage = Math.floor(selectedSkill.damageFactor * user.stats.intelligence);
-                                responseMessage = `Kamu menggunakan skill ${selectedSkill.name} dan memberikan damage sebesar ${skillDamage} poin menggunakan mana!`;
-                            
-                            // Jika skill menggunakan stamina, hitung damage berdasarkan strength
-                            } else if (selectedSkill.staminaCost && selectedSkill.staminaCost > 0) {
-                                skillDamage = Math.floor(selectedSkill.damageFactor * user.stats.strength);
-                                responseMessage = `Kamu menggunakan skill ${selectedSkill.name} dan memberikan damage sebesar ${skillDamage} poin menggunakan stamina!`;
-                            }
-                
-                            monsterHealth -= skillDamage;
-                        }
-                    } else {
-                        responseMessage = 'Mana atau Stamina tidak cukup untuk menggunakan skill ini!';
-                    }
-                    break;
-                
 
             default:
                 return;
         }
 
         if (userHealth > 0 && monsterHealth > 0) {
-            const { userHealth: newUserHealth, monsterDamage } = applyMonsterAttack(userHealth, monster);
-            userHealth = newUserHealth;
+            const monsterDamage = Math.max(0, (monster.attack || 0) - (user.stats.defense || 0));
+            userHealth -= monsterDamage;
             responseMessage += `\n${monster.name} menyerang kamu dan menyebabkan ${monsterDamage} poin damage!`;
         }
 
@@ -187,25 +126,28 @@ const initBattle = async (interaction, user) => {
 
             const systemUser = await User.findOne({ discordId: '994553740864536596' });
             const rewardCeles = monster.celesReward;
+            const roleBonus = roleBonuses[interaction.member.roles.cache.find(r => roleBonuses[r.id])?.id] || { xpBonus: 0, celesBonus: 0 };
 
-            if (systemUser && systemUser.celes >= rewardCeles) {
-                systemUser.celes -= rewardCeles;
+            const finalCelesReward = Math.floor(rewardCeles * (1 + roleBonus.celesBonus / 100));
+            const finalXpReward = Math.floor(monster.experienceReward * (1 + roleBonus.xpBonus / 100));
+
+            if (systemUser && systemUser.celes >= finalCelesReward) {
+                systemUser.celes -= finalCelesReward;
                 await systemUser.save();
 
-                user.celes += rewardCeles;
+                user.celes += finalCelesReward;
             }
 
-            user.experience += monster.experienceReward;
+            user.experience += finalXpReward;
             const leveledUp = await checkLevelUp(user);
 
-            // Update user mana, stamina, and health after battle victory
             user.health.current = userHealth;
             user.mana.current = userMana;
             user.stamina.current = userStamina;
 
             await user.save();
 
-            let levelUpMessage = `Kamu mengalahkan ${monster.name}! Mendapatkan ${monster.experienceReward} XP dan ${rewardCeles} celes!`;
+            let levelUpMessage = `Kamu mengalahkan ${monster.name}! Mendapatkan ${finalXpReward} XP dan ${finalCelesReward} celes!`;
             if (leveledUp) {
                 levelUpMessage += `\nSelamat! Kamu naik level ke level ${user.level}. Max HP sekarang adalah ${user.health.max}.`;
             }
@@ -219,6 +161,7 @@ const initBattle = async (interaction, user) => {
         }
     });
 };
+
 const calculateDamage = (user, monster) => {
     const strength = user.stats.strength || 0;
     const defense = monster.defense || 0;
@@ -237,9 +180,8 @@ module.exports = {
     async execute(interaction) {
         const user = await User.findOne({ discordId: interaction.user.id });
         if (!user) return interaction.reply('Kamu belum terdaftar!');
-
         return initBattle(interaction, user);
     },
 };
 
-module.exports = { initBattle }; // Ekspor fungsi initBattle
+module.exports = { initBattle };
