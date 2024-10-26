@@ -100,9 +100,42 @@ const initBattle = async (interaction, user) => {
             case 'flee':
                 actionCollector.stop();
                 return interaction.followUp('Kamu berhasil melarikan diri!');
+            case 'selectSkill': // Menangani pemilihan skill
+                const selectedSkillName = i.values[0];
+                const selectedSkill = skills.find(skill => skill.name === selectedSkillName);
+                if (!selectedSkill) {
+                    return interaction.followUp('Skill tidak valid!');
+                }
 
-            default:
-                return;
+                // Periksa apakah user memiliki cukup mana dan stamina
+                const hasEnoughMana = selectedSkill.manaCost ? user.mana.current >= selectedSkill.manaCost : true;
+                const hasEnoughStamina = selectedSkill.staminaCost ? user.stamina.current >= selectedSkill.staminaCost : true;
+
+                if (hasEnoughMana && hasEnoughStamina) {
+                    if (selectedSkill.manaCost) user.mana.current -= selectedSkill.manaCost;
+                    if (selectedSkill.staminaCost) user.stamina.current -= selectedSkill.staminaCost;
+
+                    const skillDamage = Math.floor(selectedSkill.damageFactor * user.stats.intelligence);
+                    monsterHealth -= skillDamage;
+                    responseMessage = `Kamu menggunakan skill ${selectedSkill.name} dan memberikan damage sebesar ${skillDamage} poin!`;
+                } else {
+                    responseMessage = 'Mana atau Stamina tidak cukup untuk menggunakan skill ini!';
+                }
+
+                // Monster menyerang setelah penggunaan skill
+                if (monsterHealth > 0) {
+                    userHealth -= monster.attack;
+                    responseMessage += `\n${monster.name} menyerang kamu dan menyebabkan ${monster.attack} poin damage!`;
+                }
+
+                // Perbarui embed dengan nilai kesehatan terbaru
+                battleEmbed.setDescription(`${responseMessage}\n\nKesehatanmu: ${userHealth}/${user.health.max}\nKesehatan Monster: ${monsterHealth}`);
+                await i.editReply({ embeds: [battleEmbed], components: [row, skillRow] });
+
+                user.health.current = userHealth;
+                default:
+                    return;
+                
         }
 
         if (userHealth > 0 && monsterHealth > 0) {
