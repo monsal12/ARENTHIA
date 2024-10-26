@@ -115,9 +115,17 @@ const initBattle = async (interaction, user) => {
                     if (selectedSkill.manaCost) user.mana.current -= selectedSkill.manaCost;
                     if (selectedSkill.staminaCost) user.stamina.current -= selectedSkill.staminaCost;
 
-                    const skillDamage = Math.floor(selectedSkill.damageFactor * user.stats.intelligence);
-                    monsterHealth -= skillDamage;
-                    responseMessage = `Kamu menggunakan skill ${selectedSkill.name} dan memberikan damage sebesar ${skillDamage} poin!`;
+                    let skillDamage;
+                if (selectedSkill.manaCost) {
+                 skillDamage = Math.floor(selectedSkill.damageFactor * user.stats.intelligence);
+                } else if (selectedSkill.staminaCost) {
+                  skillDamage = Math.floor(selectedSkill.damageFactor * user.stats.strength);
+                } else {
+                skillDamage = 0; // Jika skill tidak menggunakan mana atau stamina
+}
+
+monsterHealth -= skillDamage;
+responseMessage = `Kamu menggunakan skill ${selectedSkill.name} dan memberikan damage sebesar ${skillDamage} poin!`;
                 } else {
                     responseMessage = 'Mana atau Stamina tidak cukup untuk menggunakan skill ini!';
                 }
