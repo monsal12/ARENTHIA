@@ -1,6 +1,6 @@
 // Data armor pool
 const armorPool = [
-    [
+    
         { 
             "name": "Phantom Cloak", 
             "grade": "epic", 
@@ -177,7 +177,7 @@ const armorPool = [
             "imageUrl": "https://media.discordapp.net/attachments/1302894070749855764/1302894192829272074/IMG_9097.jpg?ex=6729c646&is=672874c6&hm=4286218c29925f55b0abc2e7d97d01bbad1dfd932c42595de186de4b14db95b8&=&format=webp&width=375&height=498", 
             "rate": 0.4 
         }
-    ]
+    
     
     // Tambahkan armor lain sesuai kebutuhan
 ];

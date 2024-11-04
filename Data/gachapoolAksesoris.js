@@ -1,5 +1,5 @@
 const gachaPoolAksesoris = [
-    [
+    
         { 
             "name": "Cursed Ring", 
             "grade": "epic", 
@@ -110,7 +110,7 @@ const gachaPoolAksesoris = [
             "imageUrl": "https://media.discordapp.net/attachments/1302897152204345384/1302897221561483355/IMG_9107.jpg?ex=6729c918&is=67287798&hm=568edd5d53e5117b0c3a11489c99d10f5c73cc8cd855dd28b688df70008e209f&=&format=webp&width=427&height=498", 
             "rate": 0.6 
         }
-    ]
+    
     
 ];
 
