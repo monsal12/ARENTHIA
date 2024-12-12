@@ -4,9 +4,11 @@ const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const mongoose = require('mongoose');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const User = require('./models/user'); // Pastikan jalur ini sesuai dengan model User
-const { createProfileEmbed } = require('./helpers/embed'); // Pastikan jalur ini sesuai
+const User = require('./models/user'); // Model User
+const { createProfileEmbed } = require('./helpers/embed'); // Embed untuk profile
 const cron = require('node-cron');
+const express = require('express');
+const bodyParser = require('body-parser'); // Middleware untuk parsing JSON
 
 require('dotenv').config(); // Memastikan dotenv di-load
 
@@ -108,6 +110,39 @@ cron.schedule('0 */3 * * *', async () => {
     });
     
     console.log("Hunger dan thirst telah dikurangi untuk semua pengguna");
+});
+
+// ---- Express API Endpoint ----
+const app = express();
+
+// Middleware untuk parsing JSON
+app.use(bodyParser.json());
+
+// Endpoint untuk mendapatkan data pengguna (Bot A)
+app.get('/user_data', async (req, res) => {
+    try {
+        const users = await User.find();
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Endpoint untuk memproses data yang dikirim oleh Bot B
+app.post('/process_data', async (req, res) => {
+    const { discordId, preferences } = req.body;
+    try {
+        const user = new User({ discordId, preferences });
+        await user.save();
+        res.status(201).json({ message: 'Data berhasil diproses dan disimpan', user });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Menjalankan API di port 5001
+app.listen(5001, () => {
+    console.log('API berjalan di http://localhost:5001');
 });
 
 // Login bot ke Discord
