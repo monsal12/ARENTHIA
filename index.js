@@ -140,10 +140,10 @@ app.post('/process_data', async (req, res) => {
     }
 });
 
-// Menjalankan API di port 5001
-app.listen(5001, () => {
-    console.log('API berjalan di http://localhost:5001');
+app.listen(5001, '0.0.0.0', () => {
+    console.log('API berjalan di http://0.0.0.0:5001');
 });
+
 
 // Login bot ke Discord
 client.once('ready', () => {
