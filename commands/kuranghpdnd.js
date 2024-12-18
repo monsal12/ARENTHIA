@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const User = require('../models/User'); // Model mongoose User
+const User = require('../models/user'); // Model mongoose User
 
 module.exports = {
     data: new SlashCommandBuilder()
