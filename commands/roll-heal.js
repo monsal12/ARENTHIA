@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const User = require('../models/User'); // Model mongoose User
+const User = require('../models/user'); // Model mongoose User
 
 // Role ID yang diperlukan untuk bisa menggunakan heal
 const REQUIRED_ROLE_ID = '1318853492474904627';  // Ganti dengan ID role yang diinginkan

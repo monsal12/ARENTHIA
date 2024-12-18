@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const User = require('../models/User'); // Model mongoose User
+const User = require('../models/user'); // Model mongoose User
 const { calculateRoleStats } = require('../helpers/roleStatsHelper'); // Mengimpor fungsi helper
 
 // Fungsi untuk roll nilai antara 0 hingga max
