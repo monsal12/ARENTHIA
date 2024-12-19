@@ -41,7 +41,7 @@ module.exports = {
     async execute(interaction) {
         try {
             // Periksa apakah pengguna memiliki role yang sesuai
-            const requiredRoleId = '1246365106846044262';
+            const requiredRoleIds = ['1319306786783887360', '1246365106846044262'];
             const memberRoles = interaction.member.roles.cache;
             if (!memberRoles.has(requiredRoleId)) {
                 return interaction.reply({
