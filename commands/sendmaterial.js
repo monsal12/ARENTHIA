@@ -46,7 +46,7 @@ module.exports = {
         if (quantity <= 0) {
             return interaction.reply({ content: 'Jumlah material yang ingin ditransfer harus lebih besar dari 0.', ephemeral: true });
         }
-
+// gabut gw 
         try {
             // Ambil inventory pengirim dan penerima
             let senderInventory = await MaterialInventory.findOne({ userId: senderId });
