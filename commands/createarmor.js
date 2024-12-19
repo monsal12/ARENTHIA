@@ -37,13 +37,16 @@ module.exports = {
             option.setName('image_url')
                 .setDescription('URL gambar armor')
                 .setRequired(true)), // Tambahkan parameter URL gambar
-    
+
     async execute(interaction) {
         try {
-            // Periksa apakah pengguna memiliki role yang sesuai
+            // Role yang diizinkan
             const requiredRoleIds = ['1319306786783887360', '1246365106846044262'];
             const memberRoles = interaction.member.roles.cache;
-            if (!memberRoles.has(requiredRoleId)) {
+
+            // Periksa apakah pengguna memiliki salah satu Role ID
+            const hasRequiredRole = requiredRoleIds.some(roleId => memberRoles.has(roleId));
+            if (!hasRequiredRole) {
                 return interaction.reply({
                     content: '❌ Anda tidak memiliki izin untuk menggunakan command ini.',
                     ephemeral: true
