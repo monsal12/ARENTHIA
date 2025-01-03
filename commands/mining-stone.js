@@ -79,8 +79,8 @@ module.exports = {
             await userInventory.save();
 
             return interaction.reply({
-                content: `Selamat! Anda berhasil menambang ${randomOreQuantity} ${tier} Ore!`,
-            });
+                content: `Selamat! Anda berhas
+                il menambang ${randomOreQuantity} ${tier} Ore!`,});
         } else {
             return interaction.reply({ content: 'Sayang sekali, Anda gagal menambang. Coba lagi!', ephemeral: true });
         }
