@@ -59,9 +59,7 @@ module.exports = {
                     { name: 'Health Bonus', value: `+${bonusStats.health} Health`, inline: true },
                     { name: 'Mana Bonus', value: `+${bonusStats.mana} Mana`, inline: true },
                     { name: 'Stamina Bonus', value: `+${bonusStats.stamina} Stamina`, inline: true },
-                    { name: 'Strength Bonus', value: `+${bonusStats.strength} Strength`, inline: true },
-                    { name: 'Intelligence Bonus', value: `+${bonusStats.intelligence} Intelligence`, inline: true },
-                    { name: 'Ability Bonus', value: `+${bonusStats.ability} Ability`, inline: true }
+                   
                 )
                 .setThumbnail(pet.image || 'https://example.com/default-image.jpg'); // Ensure image is valid
 
