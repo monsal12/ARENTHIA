@@ -42,10 +42,7 @@ module.exports = {
     async execute(interaction) {
         const userId = interaction.user.id;
         const tier = interaction.options.getString('tier');
-        const channelId = interaction.channel.id;
         const user = interaction.guild.members.cache.get(userId);
-
-        console.log("Tier yang dipilih:", tier);
 
         // Memastikan pemain berada di channel yang benar untuk mining
         if (interaction.channel.id !== channelIds[tier]) {
@@ -58,89 +55,36 @@ module.exports = {
             return interaction.reply({ content: `Anda perlu memiliki role **${roleRequired}** untuk menambang di channel ini.`, ephemeral: true });
         }
 
-        // Menunda balasan untuk memberi waktu kepada proses
-        await interaction.deferReply();
+        // Ambil data kayu berdasarkan tier
+        const woodData = woodsData.Wood[tier];
+        const randomWoodQuantity = Math.floor(Math.random() * (woodData.maxQuantity - woodData.minQuantity + 1)) + woodData.minQuantity;
+        const randomChance = Math.floor(Math.random() * 100) + 1;
 
-        // Membuat Embed untuk memberi tahu semua orang bahwa mining sedang berlangsung
-        const miningEmbed = new EmbedBuilder()
-            .setColor('#8B4513')
-            .setTitle('Mulai Mining Kayu!')
-            .setDescription(`**${interaction.user.username}** telah mulai mining kayu di **${tier}**! Waktu tersisa: **10 menit**.`)
-            .addFields(
-                { name: 'Tier', value: tier, inline: true },
-                { name: 'Durasi Mining', value: '10 Menit', inline: true }
-            )
-            .setTimestamp();
+        // Jika mining berhasil (berdasarkan peluang)
+        if (randomChance <= woodData.chance) {
+            const userInventory = await MaterialInventory.findOne({ userId });
 
-        // Kirim embed ke channel agar semua orang bisa melihat
-        const miningMessage = await interaction.channel.send({ embeds: [miningEmbed] });
-
-        // Mengatur waktu mining menjadi 10 menit
-        let timeLeft = 600; // 600 detik (10 menit)
-        const interval = setInterval(async () => {
-            timeLeft -= 1;
-
-            // Menghitung waktu tersisa dalam format menit:detik
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            const timeString = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-
-            // Update embed dengan waktu tersisa
-            const updatedEmbed = new EmbedBuilder(miningEmbed)
-                .setDescription(`**${interaction.user.username}** telah mulai mining kayu di **${tier}**! Waktu tersisa: **${timeString}**.`)
-                .addFields(
-                    { name: 'Tier', value: tier, inline: true },
-                    { name: 'Durasi Mining', value: '10 Menit', inline: true }
-                )
-                .setTimestamp();
-
-            await miningMessage.edit({ embeds: [updatedEmbed] });
-
-            // Jika waktu selesai, hentikan interval dan berikan hasil mining
-            if (timeLeft <= 0) {
-                clearInterval(interval);
-
-                const woodData = woodsData.Wood[tier];  // Pastikan tier data ada
-                const randomWoodQuantity = Math.floor(Math.random() * (woodData.maxQuantity - woodData.minQuantity + 1)) + woodData.minQuantity;
-                const randomChance = Math.floor(Math.random() * 100) + 1;
-
-                // Jika mining berhasil (berdasarkan peluang)
-                if (randomChance <= woodData.chance) {
-                    // Tambahkan kayu ke inventory pemain
-                    const userInventory = await MaterialInventory.findOne({ userId });
-
-                    if (!userInventory) {
-                        return interaction.followUp({ content: 'Anda tidak memiliki inventory. Mining gagal.', ephemeral: true });
-                    }
-
-                    let materialInInventory = userInventory.materials.find(m => m.materialName === 'Wood' && m.tier === tier);
-
-                    // Jika material tidak ada di inventory, buat baru
-                    if (!materialInInventory) {
-                        materialInInventory = { materialName: 'Wood', tier: tier, quantity: 0 };
-                        userInventory.materials.push(materialInInventory);
-                    }
-
-                    // Tambah jumlah kayu
-                    materialInInventory.quantity += randomWoodQuantity;
-                    await userInventory.save();
-
-                    // Balas dengan hasil mining
-                    await interaction.followUp({
-                        content: `Selamat! Anda berhasil menambang ${randomWoodQuantity} ${tier} Wood!`,
-                    });
-                } else {
-                    await interaction.followUp({ content: 'Sayang sekali, Anda gagal menambang. Coba lagi!', ephemeral: true });
-                }
-
-                // Cabut role mining setelah selesai
-                await user.roles.remove(roleRequired);
+            if (!userInventory) {
+                return interaction.reply({ content: 'Anda tidak memiliki inventory. Mining gagal.', ephemeral: true });
             }
-        }, 1000); // Update setiap detik (1000 ms)
 
-        // Setelah mining selesai, cabut role mining
-        setTimeout(async () => {
-            await user.roles.remove(roleRequired);
-        }, 600000); // Setelah 10 menit (600000 ms)
+            let materialInInventory = userInventory.materials.find(m => m.materialName === 'Wood' && m.tier === tier);
+
+            // Jika material tidak ada di inventory, buat baru
+            if (!materialInInventory) {
+                materialInInventory = { materialName: 'Wood', tier: tier, quantity: 0 };
+                userInventory.materials.push(materialInInventory);
+            }
+
+            // Tambah jumlah kayu
+            materialInInventory.quantity += randomWoodQuantity;
+            await userInventory.save();
+
+            return interaction.reply({
+                content: `Selamat! Anda berhasil menambang ${randomWoodQuantity} ${tier} Wood!`,
+            });
+        } else {
+            return interaction.reply({ content: 'Sayang sekali, Anda gagal menambang kayu. Coba lagi!', ephemeral: true });
+        }
     }
 };

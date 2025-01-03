@@ -42,7 +42,6 @@ module.exports = {
     async execute(interaction) {
         const userId = interaction.user.id;
         const tier = interaction.options.getString('tier');
-        const channelId = interaction.channel.id; // Mendapatkan ID Channel
         const user = interaction.guild.members.cache.get(userId);
 
         // Memastikan pemain berada di channel yang benar untuk fishing
@@ -56,101 +55,36 @@ module.exports = {
             return interaction.reply({ content: `Anda perlu memiliki role **${roleRequired}** untuk memancing di channel ini.`, ephemeral: true });
         }
 
-        // Menunda balasan untuk memberi waktu kepada proses
-        await interaction.deferReply();
+        // Ambil data fish berdasarkan tier
+        const fishData = fishesData.Fish[tier];
+        const randomFishQuantity = Math.floor(Math.random() * (fishData.maxQuantity - fishData.minQuantity + 1)) + fishData.minQuantity;
+        const randomChance = Math.floor(Math.random() * 100) + 1;
 
-        // Membuat Embed untuk memberi tahu semua orang bahwa fishing sedang berlangsung
-        const fishingEmbed = new EmbedBuilder()
-            .setColor('#00FF00')
-            .setTitle('Mulai Fishing!')
-            .setDescription(`**${interaction.user.username}** telah mulai memancing ikan di **${tier}**! Waktu tersisa: **10 menit**.`)
-            .addFields(
-                { name: 'Tier', value: tier, inline: true },
-                { name: 'Durasi Fishing', value: '10 Menit', inline: true }
-            )
-            .setTimestamp();
+        // Jika fishing berhasil (berdasarkan peluang)
+        if (randomChance <= fishData.chance) {
+            const userInventory = await MaterialInventory.findOne({ userId });
 
-        // Kirim embed ke channel agar semua orang bisa melihat
-        const fishingMessage = await interaction.channel.send({ embeds: [fishingEmbed] });
-
-        // Menambahkan hitung mundur
-        let timeLeft = 600; // 600 detik (10 menit)
-        const interval = setInterval(async () => {
-            timeLeft -= 1;
-
-            // Menghitung detik tersisa dalam format menit:detik
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            const timeString = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-
-            // Update embed dengan waktu tersisa
-            const updatedEmbed = new EmbedBuilder(fishingEmbed)
-                .setDescription(`**${interaction.user.username}** telah mulai memancing ikan di **${tier}**! Waktu tersisa: **${timeString}**.`)
-                .addFields(
-                    { name: 'Tier', value: tier, inline: true },
-                    { name: 'Durasi Fishing', value: '10 Menit', inline: true }
-                )
-                .setTimestamp();
-
-            await fishingMessage.edit({ embeds: [updatedEmbed] });
-
-            // Jika waktu selesai, hentikan interval dan berikan hasil fishing
-            if (timeLeft <= 0) {
-                clearInterval(interval);
-
-                const fishData = fishesData.Fish[tier]; // Ambil data fish berdasarkan tier
-                const randomFishQuantity = Math.floor(Math.random() * (fishData.maxQuantity - fishData.minQuantity + 1)) + fishData.minQuantity;
-                const randomChance = Math.floor(Math.random() * 100) + 1;
-
-                console.log(`Mengambil data untuk Fish: ${JSON.stringify(fishData)}`); // Debugging
-
-                // Jika fishing berhasil (berdasarkan peluang)
-                if (randomChance <= fishData.chance) {
-                    console.log(`Fishing berhasil! Menambah ${randomFishQuantity} Fish ke inventory.`); // Debugging
-
-                    // Tambahkan fish ke inventory pemain
-                    const userInventory = await MaterialInventory.findOne({ userId });
-
-                    if (!userInventory) {
-                        return interaction.followUp({ content: 'Anda tidak memiliki inventory. Fishing gagal.', ephemeral: true });
-                    }
-
-                    // Cari material fish di inventory
-                    let materialInInventory = userInventory.materials.find(m => m.materialName === 'Fish' && m.tier === tier);
-
-                    if (!materialInInventory) {
-                        console.log(`Material Fish belum ada di inventory. Menambahkannya.`); // Debugging
-                        materialInInventory = { materialName: 'Fish', tier: tier, quantity: 0 };
-                        userInventory.materials.push(materialInInventory); // Jika material belum ada, tambahkan
-                    }
-
-                    // Update jumlah fish di inventory
-                    materialInInventory.quantity += randomFishQuantity;
-
-                    // Simpan perubahan inventory
-                    try {
-                        await userInventory.save(); // Pastikan data disimpan
-                        console.log(`Inventory berhasil diperbarui dengan ${randomFishQuantity} Fish.`); // Debugging
-                    } catch (error) {
-                        console.error('Error saat menyimpan inventory:', error);
-                    }
-
-                    // Balas dengan hasil fishing
-                    await interaction.followUp({
-                        content: `Selamat! Anda berhasil memancing ${randomFishQuantity} Fish ${tier}!`,
-                    });
-                } else {
-                    await interaction.followUp({ content: 'Sayang sekali, Anda gagal memancing ikan. Coba lagi!', ephemeral: true });
-                }
-
-                // Cabut role fishing setelah selesai
-                await user.roles.remove(roleRequired);
+            if (!userInventory) {
+                return interaction.reply({ content: 'Anda tidak memiliki inventory. Fishing gagal.', ephemeral: true });
             }
-        }, 1000); // Update setiap detik (1000 ms)
 
-        // Setelah fishing selesai, cabut role fishing
-        setTimeout(async () => {
-            await user.roles.remove(roleRequired);
-        }, 600000); // Setelah 10 menit (600000 ms)
+            // Cari material fish di inventory
+            let materialInInventory = userInventory.materials.find(m => m.materialName === 'Fish' && m.tier === tier);
+
+            if (!materialInInventory) {
+                materialInInventory = { materialName: 'Fish', tier: tier, quantity: 0 };
+                userInventory.materials.push(materialInInventory); // Jika material belum ada, tambahkan
+            }
+
+            // Update jumlah fish di inventory
+            materialInInventory.quantity += randomFishQuantity;
+            await userInventory.save(); // Pastikan data disimpan
+
+            return interaction.reply({
+                content: `Selamat! Anda berhasil memancing ${randomFishQuantity} Fish ${tier}!`,
+            });
+        } else {
+            return interaction.reply({ content: 'Sayang sekali, Anda gagal memancing ikan. Coba lagi!', ephemeral: true });
+        }
     }
 };
