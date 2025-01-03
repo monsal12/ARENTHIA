@@ -10,10 +10,10 @@ const userSchema = new Schema({
     level: { type: Number, default: 1 },
     weapons: [{ type: Schema.Types.ObjectId, ref: 'Weapon' }],
     armors: [{ type: Schema.Types.ObjectId, ref: 'Armor' }],
-    accessories: [{ type: Schema.Types.ObjectId, ref: 'Accessory' }], // Correct reference to 'Accessory'
+    accessories: [{ type: Schema.Types.ObjectId, ref: 'Accessory' }],
     equippedWeapon: { type: Schema.Types.ObjectId, ref: 'Weapon', default: null },
     equippedArmor: { type: Schema.Types.ObjectId, ref: 'Armor', default: null },
-    equippedAccessory: { type: Schema.Types.ObjectId, ref: 'Accessory', default: null }, // Added equippedAccessory
+    equippedAccessory: { type: Schema.Types.ObjectId, ref: 'Accessory', default: null },
     experience: { type: Number, default: 0 },
     spyr: { type: Number, default: 5 },
     health: {
@@ -33,6 +33,7 @@ const userSchema = new Schema({
         intelligence: { type: Number, default: 10 },
         ability: { type: Number, default: 10 }
     },
+    equippedPet: { type: Schema.Types.ObjectId, ref: 'Pet' },  // Mengganti mongoose.Schema dengan Schema
     rank: { type: String },
     guild: { type: String },
     celes: { type: Number, default: 0 },
@@ -44,8 +45,8 @@ const userSchema = new Schema({
         legendary: { type: Number, default: 0 },
     },
     huntingCooldown: { type: Date, default: Date.now },
-    hunger: { type: Number, default: 100 }, // Level lapar
-    thirst: { type: Number, default: 100 }, // Level haus
+    hunger: { type: Number, default: 100 },
+    thirst: { type: Number, default: 100 },
 });
 
 // Mengecek apakah model 'User' sudah ada

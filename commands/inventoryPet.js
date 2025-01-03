@@ -1,11 +1,11 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const InventoryPet = require('../models/InventoryPet');
 
 // Command untuk melihat inventory pet
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('inventorypet')
+        .setName('inventory-pet')
         .setDescription('Show all pets in your inventory'),
 
     async execute(interaction) {
@@ -18,12 +18,12 @@ module.exports = {
             if (!inventory || inventory.pets.length === 0) {
                 return interaction.reply({
                     content: 'You have no pets in your inventory.',
-                    ephemeral: true
+                    ephemeral: false  // Agar dapat dilihat semua orang
                 });
             }
 
             // Buat embed untuk inventory
-            const embed = new MessageEmbed()
+            const embed = new EmbedBuilder()
                 .setColor('#0099ff')
                 .setTitle(`${user.username}'s Pet Inventory`)
                 .setDescription('Here are the pets in your inventory:');
@@ -35,21 +35,21 @@ module.exports = {
                 embed.addFields({
                     name: `${index + 1}. **${pet.name}** (Code: ${item.uniqueCode})`,
                     value: `[Pet Image](${pet.image})`, // Tampilkan gambar pet sebagai link
-                    inline: true
+                    inline: false
                 });
             });
 
             // Kirim embed dengan informasi inventory
             interaction.reply({
                 embeds: [embed],
-                ephemeral: true
+                ephemeral: false  // Agar dapat dilihat semua orang
             });
 
         } catch (error) {
             console.error(error);
             interaction.reply({
                 content: 'There was an error retrieving your inventory. Please try again later.',
-                ephemeral: true
+                ephemeral: false  // Agar dapat dilihat semua orang
             });
         }
     }

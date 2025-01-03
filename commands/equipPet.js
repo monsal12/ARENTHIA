@@ -1,16 +1,16 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');  // Use EmbedBuilder instead of MessageEmbed
 const InventoryPet = require('../models/InventoryPet');
 const User = require('../models/user');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('equip')
+        .setName('equip-pet')
         .setDescription('Equip a pet to gain its bonus stats')
         .addStringOption(option =>
             option.setName('pet_code')
                 .setDescription('The unique code of the pet you want to equip')
-                .setRequired(true)
+                .setRequired(true)  // Pastikan opsi ini wajib
         ),
 
     async execute(interaction) {
@@ -24,7 +24,7 @@ module.exports = {
             if (!inventory) {
                 return interaction.reply({
                     content: 'You do not have an inventory.',
-                    ephemeral: true
+                    ephemeral: false
                 });
             }
 
@@ -34,19 +34,27 @@ module.exports = {
             if (!petItem) {
                 return interaction.reply({
                     content: 'Pet not found in your inventory.',
-                    ephemeral: true
+                    ephemeral: false
                 });
             }
 
             const pet = petItem.pet;
 
-            // Equip the pet to the user and apply bonus stats
+            // Get user's data
             const userData = await User.findOne({ discordId: user.id });
 
             if (!userData) {
                 return interaction.reply({
                     content: 'User data not found.',
-                    ephemeral: true
+                    ephemeral: false
+                });
+            }
+
+            // Check if pet is already equipped
+            if (userData.equippedPet) {
+                return interaction.reply({
+                    content: 'You already have a pet equipped. Please unequip your current pet before equipping a new one.',
+                    ephemeral: false
                 });
             }
 
@@ -55,6 +63,11 @@ module.exports = {
             userData.mana.max += pet.bonusStats.mana;
             userData.stamina.max += pet.bonusStats.stamina;
 
+            // Set current health, mana, and stamina equal to max values
+            userData.health.current = userData.health.max;
+            userData.mana.current = userData.mana.max;
+            userData.stamina.current = userData.stamina.max;
+
             // Set equipped pet to this pet
             userData.equippedPet = pet._id;  // Assuming 'equippedPet' is a field in the user schema
 
@@ -62,23 +75,26 @@ module.exports = {
             await userData.save();
 
             // Send confirmation message
-            const embed = new MessageEmbed()
+            const embed = new EmbedBuilder()
                 .setColor('#0099ff')
                 .setTitle(`Pet Equipped: ${pet.name}`)
                 .setDescription(`You have successfully equipped **${pet.name}**!`)
-                .addField('Bonus Stats Applied:', `+${pet.bonusStats.health} Health, +${pet.bonusStats.mana} Mana, +${pet.bonusStats.stamina} Stamina`)
+                .addFields({
+                    name: 'Bonus Stats Applied:',
+                    value: `+${pet.bonusStats.health} Health, +${pet.bonusStats.mana} Mana, +${pet.bonusStats.stamina} Stamina`
+                })
                 .setThumbnail(pet.image);
 
             interaction.reply({
                 embeds: [embed],
-                ephemeral: true
+                ephemeral: false
             });
 
         } catch (error) {
             console.error(error);
             interaction.reply({
                 content: 'There was an error equipping the pet. Please try again later.',
-                ephemeral: true
+                ephemeral: false
             });
         }
     }

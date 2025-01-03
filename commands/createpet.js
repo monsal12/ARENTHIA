@@ -8,7 +8,7 @@ const roleId = '1246365106846044262';  // Ganti dengan Role ID yang diinginkan
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('createpet')
+    .setName('create-pet')
     .setDescription('Create a new pet and add it to your inventory')
     .addStringOption(option =>
       option.setName('name')
@@ -18,10 +18,6 @@ module.exports = {
       option.setName('species')
         .setDescription('The species of the pet')
         .setRequired(true))
-    .addStringOption(option =>
-      option.setName('image')
-        .setDescription('URL of the pet image')
-        .setRequired(false))
     .addIntegerOption(option =>
       option.setName('health')
         .setDescription('Bonus health for the pet')
@@ -36,7 +32,11 @@ module.exports = {
       option.setName('stamina')
         .setDescription('Bonus stamina for the pet')
         .setRequired(true)
-        .setMinValue(0)),
+        .setMinValue(0))
+    .addStringOption(option =>
+      option.setName('image')
+        .setDescription('URL of the pet image')
+        .setRequired(false)),
 
   async execute(interaction) {
     const { user, options } = interaction;
@@ -46,7 +46,7 @@ module.exports = {
     if (!member.roles.cache.has(roleId)) {
       return interaction.reply({
         content: 'You do not have the permission to use this command.',
-        ephemeral: true
+        ephemeral: false
       });
     }
 
@@ -92,14 +92,14 @@ module.exports = {
       // Send success message
       interaction.reply({
         content: `Successfully created pet **${petName}**! It has been added to your inventory. Use /equip to equip the pet and gain its stat bonuses.`,
-        ephemeral: true
+        ephemeral: false
       });
 
     } catch (error) {
       console.error(error);
       interaction.reply({
         content: 'There was an error creating the pet. Please try again later.',
-        ephemeral: true
+        ephemeral: false
       });
     }
   }
