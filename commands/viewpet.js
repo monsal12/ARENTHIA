@@ -6,10 +6,16 @@ const User = require('../models/user');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('view-pet')
-        .setDescription('View all stats of your pet'),
+        .setDescription('View stats of your pet using its unique code')
+        .addStringOption(option =>
+            option.setName('pet_code')
+                .setDescription('The unique code of the pet you want to view')
+                .setRequired(true)  // Pet code is required
+        ),
 
     async execute(interaction) {
         const { user } = interaction;
+        const petCode = interaction.options.getString('pet_code');  // Get the pet code
 
         try {
             // Get user's inventory
@@ -22,37 +28,43 @@ module.exports = {
                 });
             }
 
-            // Create an embed for each pet in the inventory
-            const embeds = inventory.pets.map(item => {
-                const pet = item.pet;
+            // Find pet by unique code in the inventory
+            const petItem = inventory.pets.find(item => item.uniqueCode === petCode);
 
-                // Creating embed for each pet
-                return new EmbedBuilder()
-                    .setColor('#0099ff')
-                    .setTitle(`Pet: ${pet.name}`)
-                    .setDescription(`Here are the stats of your pet **${pet.name}**`)
-                    .addFields(
-                        { name: 'Health Bonus', value: `+${pet.bonusStats.health} Health`, inline: true },
-                        { name: 'Mana Bonus', value: `+${pet.bonusStats.mana} Mana`, inline: true },
-                        { name: 'Stamina Bonus', value: `+${pet.bonusStats.stamina} Stamina`, inline: true },
-                        { name: 'Strength Bonus', value: `+${pet.bonusStats.strength} Strength`, inline: true },
-                        { name: 'Intelligence Bonus', value: `+${pet.bonusStats.intelligence} Intelligence`, inline: true },
-                        { name: 'Ability Bonus', value: `+${pet.bonusStats.ability} Ability`, inline: true }
-                    )
-                    .setThumbnail(pet.image)
-                    .setFooter(`Pet Code: ${item.uniqueCode}`);
-            });
+            if (!petItem) {
+                return interaction.reply({
+                    content: 'Pet with the provided code not found in your inventory.',
+                    ephemeral: false
+                });
+            }
 
-            // Send embeds (all pets in user's inventory)
+            const pet = petItem.pet;
+
+            // Creating embed to show pet stats
+            const embed = new EmbedBuilder()
+                .setColor('#0099ff')
+                .setTitle(`Pet: ${pet.name}`)
+                .setDescription(`Here are the stats of your pet **${pet.name}** with code **${petCode}**`)
+                .addFields(
+                    { name: 'Health Bonus', value: `+${pet.bonusStats.health} Health`, inline: true },
+                    { name: 'Mana Bonus', value: `+${pet.bonusStats.mana} Mana`, inline: true },
+                    { name: 'Stamina Bonus', value: `+${pet.bonusStats.stamina} Stamina`, inline: true },
+                    { name: 'Strength Bonus', value: `+${pet.bonusStats.strength} Strength`, inline: true },
+                    { name: 'Intelligence Bonus', value: `+${pet.bonusStats.intelligence} Intelligence`, inline: true },
+                    { name: 'Ability Bonus', value: `+${pet.bonusStats.ability} Ability`, inline: true }
+                )
+                .setThumbnail(pet.image);
+
+            // Send the embed with pet stats
             interaction.reply({
-                embeds: embeds,
+                embeds: [embed],
                 ephemeral: false
             });
 
         } catch (error) {
             console.error(error);
             interaction.reply({
-                content: 'There was an error retrieving your pets. Please try again later.',
+                content: 'There was an error retrieving your pet stats. Please try again later.',
                 ephemeral: false
             });
         }
