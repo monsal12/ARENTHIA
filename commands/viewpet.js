@@ -40,20 +40,30 @@ module.exports = {
 
             const pet = petItem.pet;
 
+            // Check if the pet has valid bonus stats and set default values if missing
+            const bonusStats = pet.bonusStats || {
+                health: 0,
+                mana: 0,
+                stamina: 0,
+                strength: 0,
+                intelligence: 0,
+                ability: 0
+            };
+
             // Creating embed to show pet stats
             const embed = new EmbedBuilder()
                 .setColor('#0099ff')
                 .setTitle(`Pet: ${pet.name}`)
                 .setDescription(`Here are the stats of your pet **${pet.name}** with code **${petCode}**`)
                 .addFields(
-                    { name: 'Health Bonus', value: `+${pet.bonusStats.health} Health`, inline: true },
-                    { name: 'Mana Bonus', value: `+${pet.bonusStats.mana} Mana`, inline: true },
-                    { name: 'Stamina Bonus', value: `+${pet.bonusStats.stamina} Stamina`, inline: true },
-                    { name: 'Strength Bonus', value: `+${pet.bonusStats.strength} Strength`, inline: true },
-                    { name: 'Intelligence Bonus', value: `+${pet.bonusStats.intelligence} Intelligence`, inline: true },
-                    { name: 'Ability Bonus', value: `+${pet.bonusStats.ability} Ability`, inline: true }
+                    { name: 'Health Bonus', value: `+${bonusStats.health} Health`, inline: true },
+                    { name: 'Mana Bonus', value: `+${bonusStats.mana} Mana`, inline: true },
+                    { name: 'Stamina Bonus', value: `+${bonusStats.stamina} Stamina`, inline: true },
+                    { name: 'Strength Bonus', value: `+${bonusStats.strength} Strength`, inline: true },
+                    { name: 'Intelligence Bonus', value: `+${bonusStats.intelligence} Intelligence`, inline: true },
+                    { name: 'Ability Bonus', value: `+${bonusStats.ability} Ability`, inline: true }
                 )
-                .setThumbnail(pet.image);
+                .setThumbnail(pet.image || 'https://example.com/default-image.jpg'); // Ensure image is valid
 
             // Send the embed with pet stats
             interaction.reply({
