@@ -46,8 +46,9 @@ module.exports = {
                     - Jabatan bangsawan inti kekaisaran [Archduke]
                     - Dapat mengangkat 6 orang menjadi keluarga bangsawan
                     - 4000 celes/minggu
-                    - customisasi senjata dengan rarity ultra rare. Meliputi gambar visual, nama, dan alokasi 12 stat
-                    - Semua privilege berlaku selama 30 hari`,
+                    - customisasi equipment dengan rarity ultra rare. Meliputi gambar visual, nama, dan alokasi 24 stat
+                    - Semua privilege berlaku selama 30 hari
+                    - setiap pembelian mendapatkan 1 pet ultra rare`,
                     inline: false
                 },
                 {
@@ -57,9 +58,10 @@ module.exports = {
                     - Gold + 60%
                     - Jabatan bangsawan inti kekaisaran [High King]
                     - Dapat mengangkat 8 orang menjadi keluarga bangsawan
-                    - customisasi senjata dengan rarity epic. Meliputi gambar visual, nama, dan alokasi 15 stat
+                    - customisasi equipment dengan rarity epic. Meliputi gambar visual, nama, dan alokasi 36 stat
                     - 5000 celes/minggu
-                    - Semua privilege berlaku selama 30 hari`,
+                    - Semua privilege berlaku selama 30 hari
+                    - setiap pembelian mendapatkan 1 pet epic`,
                     inline: false
                 },
                 {

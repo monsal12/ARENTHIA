@@ -15,7 +15,8 @@ const roleBonuses = {
 
 const initBattle = async (interaction, user) => {
     const now = Date.now();
-    const cooldownAmount = 15 * 60 * 1000; // 15 minutes in milliseconds
+    const cooldownAmount = 9 * 60 * 1000; // 9 menit
+
 
     if (cooldowns.has(interaction.user.id)) {
         const expirationTime = cooldowns.get(interaction.user.id) + cooldownAmount;
