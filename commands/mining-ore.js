@@ -40,49 +40,58 @@ module.exports = {
                 )),
 
     async execute(interaction) {
-        const userId = interaction.user.id;
-        const tier = interaction.options.getString('tier');
-        const user = interaction.guild.members.cache.get(userId);
+        try {
+            const userId = interaction.user.id;
+            const tier = interaction.options.getString('tier');
+            const user = interaction.guild.members.cache.get(userId);
 
-        // Memastikan pemain berada di channel yang benar
-        if (interaction.channel.id !== channelIds[tier]) {
-            return interaction.reply({ content: `Anda harus berada di channel mining ${tier} untuk menambang!`, ephemeral: true });
-        }
-
-        // Memastikan pengguna memiliki role yang sesuai
-        const roleRequired = miningRoles[tier];
-        if (!user.roles.cache.has(roleRequired)) {
-            return interaction.reply({ content: `Anda perlu memiliki role **${roleRequired}** untuk menambang di channel ini.`, ephemeral: true });
-        }
-
-        // Ambil data ore berdasarkan tier
-        const oreData = oresData.Ore[tier];
-        const randomOreQuantity = Math.floor(Math.random() * (oreData.maxQuantity - oreData.minQuantity + 1)) + oreData.minQuantity;
-        const randomChance = Math.floor(Math.random() * 100) + 1;
-
-        // Jika mining berhasil
-        if (randomChance <= oreData.chance) {
-            const userInventory = await MaterialInventory.findOne({ userId });
-
-            if (!userInventory) {
-                return interaction.reply({ content: 'Anda tidak memiliki inventory. Mining gagal.', ephemeral: true });
+            // Validasi channel
+            if (interaction.channel.id !== channelIds[tier]) {
+                return interaction.reply({ content: `Anda harus berada di channel mining ${tier} untuk menambang!`, ephemeral: true });
             }
 
-            let materialInInventory = userInventory.materials.find(m => m.materialName === 'Ore' && m.tier === tier);
-
-            if (!materialInInventory) {
-                materialInInventory = { materialName: 'Ore', tier: tier, quantity: 0 };
-                userInventory.materials.push(materialInInventory);
+            // Validasi role
+            const roleRequired = miningRoles[tier];
+            if (!user.roles.cache.has(roleRequired)) {
+                return interaction.reply({ content: `Anda perlu memiliki role **${roleRequired}** untuk menambang di channel ini.`, ephemeral: true });
             }
 
-            materialInInventory.quantity += randomOreQuantity;
-            await userInventory.save();
+            // Ambil data ore berdasarkan tier
+            const oreData = oresData.Ore[tier];
+            const randomOreQuantity = Math.floor(Math.random() * (oreData.maxQuantity - oreData.minQuantity + 1)) + oreData.minQuantity;
+            const randomChance = Math.floor(Math.random() * 100) + 1;
 
-            return interaction.reply({
-                content: `Selamat! Anda berhasil menambang ${randomOreQuantity} ${tier} Ore!`,
-            });
-        } else {
-            return interaction.reply({ content: 'Sayang sekali, Anda gagal menambang. Coba lagi!', ephemeral: true });
+            if (randomChance <= oreData.chance) {
+                const userInventory = await MaterialInventory.findOne({ userId });
+
+                if (!userInventory) {
+                    throw new Error('Anda tidak memiliki inventory. Mining gagal.');
+                }
+
+                let materialInInventory = userInventory.materials.find(m => m.materialName === 'Ore' && m.tier === tier);
+
+                if (!materialInInventory) {
+                    materialInInventory = { materialName: 'Ore', tier: tier, quantity: 0 };
+                    userInventory.materials.push(materialInInventory);
+                }
+
+                materialInInventory.quantity += randomOreQuantity;
+                await userInventory.save();
+
+                await interaction.reply({
+                    content: `Selamat! Anda berhasil menambang ${randomOreQuantity} ${tier} Ore!`,
+                });
+            } else {
+                await interaction.reply({ content: 'Sayang sekali, Anda gagal menambang. Coba lagi!', ephemeral: true });
+            }
+
+            // Pencabutan role
+            if (user.roles.cache.has(roleRequired)) {
+                await user.roles.remove(roleRequired);
+            }
+        } catch (error) {
+            console.error(error);
+            await interaction.reply({ content: error.message, ephemeral: true });
         }
     }
 };
