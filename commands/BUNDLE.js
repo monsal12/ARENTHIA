@@ -33,19 +33,6 @@ module.exports = {
                     inline: false
                 },
                 {
-                    name: 'Ticket Mythic: 125k (<:T5:1295455329177305158>)',
-                    value: `
-                    - XP + 40%
-                    - Gold + 40%
-                    - Jabatan bangsawan inti kekaisaran [Archduke]
-                    - Dapat mengangkat 6 orang menjadi keluarga bangsawan
-                    - 4000 celes/minggu
-                    - customisasi equipment dengan rarity ultra rare. Meliputi gambar visual, nama, dan alokasi 24 stat
-                    - Semua privilege berlaku selama 30 hari
-                    - setiap pembelian mendapatkan 1 pet ultra rare`,
-                    inline: false
-                },
-                {
                     name: '15k',
                     value: `
                     - 10 hari (common)
